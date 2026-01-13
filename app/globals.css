@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 224, 224, 224;
+  /* HUD Silver */
+  --background-start-rgb: 10, 10, 10;
+  /* Deep Void */
+  --background-end-rgb: 10, 10, 10;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  overflow: hidden;
+  /* Prevent scrolling, canvas handles view */
+}
+
+/* Custom Utilities based on UI Guidelines */
+@layer components {
+
+  /* Section 7.2: The Holographic HUD Card */
+  .glass-panel {
+    @apply bg-black/60 backdrop-blur-glass border border-white/10;
+  }
+
+  /* Section 7.1: Primary CTA */
+  .btn-primary {
+    @apply bg-redmoon-crimson/90 hover:bg-redmoon-crimson text-white font-orbitron font-bold uppercase tracking-widest transition-all duration-300;
+  }
+
+  /* Section 7.1: Secondary/Nav Button */
+  .btn-ghost {
+    @apply bg-transparent border border-hud-silver/50 text-hud-silver hover:bg-white/10 font-orbitron transition-all duration-300;
+  }
+}
+
+/* Utility to ensure Canvas sits behind UI */
+.canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+.ui-layer {
+  position: relative;
+  z-index: 50;
+  pointer-events: none;
+  /* Let clicks pass through to 3D scene where no UI exists */
+}
+
+.ui-layer>* {
+  pointer-events: auto;
+  /* Re-enable clicks on actual UI elements */
+}
