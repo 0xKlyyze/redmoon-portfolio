@@ -34,6 +34,21 @@ body {
   .btn-ghost {
     @apply bg-transparent border border-hud-silver/50 text-hud-silver hover:bg-white/10 font-orbitron transition-all duration-300;
   }
+
+  /* Forge Dashboard CTA - Prominent Glow */
+  .forge-cta {
+    @apply relative overflow-hidden;
+    box-shadow: 0 0 20px rgba(74, 71, 163, 0.15);
+  }
+  
+  .forge-cta:hover {
+    box-shadow: 0 0 30px rgba(74, 71, 163, 0.3), inset 0 0 20px rgba(74, 71, 163, 0.1);
+  }
+
+  /* Pricing Plan Card */
+  .pricing-card {
+    @apply relative p-4 rounded-xl border transition-all duration-300;
+  }
 }
 
 /* Utility to ensure Canvas sits behind UI */

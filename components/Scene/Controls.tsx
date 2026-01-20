@@ -10,8 +10,7 @@ export default function Controls() {
     const activeAsteroid = useAppStore((state) => state.activeAsteroid);
     const isTransitioning = useAppStore((state) => state.isTransitioning);
 
-    // Effect: When we select an asteroid, we want to disable user interaction
-    // temporarily while the camera flies to the target.
+    // Effect: When we select an asteroid, disable user interaction temporarily
     useEffect(() => {
         if (controlsRef.current) {
             controlsRef.current.enabled = !isTransitioning;
@@ -24,10 +23,12 @@ export default function Controls() {
             enablePan={false}        // Panning breaks the "center of universe" feel
             enableZoom={true}
             enableRotate={true}
-            minDistance={10}         // Don't go inside the Redmoon
+            minDistance={5}          // Allow closer zoom for asteroid focus
             maxDistance={50}         // Don't fly too far away
-            maxPolarAngle={Math.PI / 2 + 0.5} // Limit vertical rotation
-            minPolarAngle={Math.PI / 2 - 0.5}
+            // Remove polar angle constraints - allow full vertical rotation
+            // so camera can reach asteroids at any position
+            maxPolarAngle={Math.PI * 0.9}
+            minPolarAngle={Math.PI * 0.1}
             makeDefault              // Makes these controls the default for the scene
         />
     );

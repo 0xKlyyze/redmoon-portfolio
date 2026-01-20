@@ -1,26 +1,30 @@
 "use client";
 
-import { Stars } from "@react-three/drei";
+import { Stars, Sparkles, Environment } from "@react-three/drei";
 
 export default function SpaceEnvironment() {
     return (
         <>
             {/* 
-        Atmospheric Fog
-        This blends distant objects into the background color (#0a0a0a),
-        creating a sense of infinite depth.
-        args: [color, near, far]
+        1. ATMOSPHERIC FOG
+        Blends distant objects into the void color.
+        This hides the hard clipping plane of the camera.
       */}
-            <fog attach="fog" args={["#0a0a0a", 30, 100]} />
+            <fog attach="fog" args={["#0a0a0a", 20, 100]} />
 
             {/* 
-        Star Field 
-        radius: Sphere size
-        depth: Star depth variation
-        count: Number of stars (optimized for mobile)
-        factor: Star size
-        saturation: 0 = white stars (cleaner look)
-        fade: Stars fade at edges
+        2. HDRI REFLECTION MAP (Invisible)
+        This is the "secret sauce". It provides reflection data for the
+        glass and metal materials. 
+        preset="city": Provides high-contrast, cool/warm light data.
+        environmentIntensity: Low, so it doesn't wash out our dramatic lighting.
+      */}
+            <Environment preset="city" environmentIntensity={0.2} />
+
+            {/* 
+        3. BACKGROUND STARS (Infinite Distance)
+        Static background to provide context.
+        saturation={0}: Pure white stars (cleaner).
       */}
             <Stars
                 radius={100}
@@ -33,26 +37,54 @@ export default function SpaceEnvironment() {
             />
 
             {/* 
-        Lighting Setup 
+        4. VOLUMETRIC DUST (Mid-ground)
+        These particles float closer to the camera.
+        When the camera moves, parallax makes these move faster,
+        creating a 3D "Volume" effect.
       */}
-
-            {/* 1. Ambient Light: The base level of visibility. Kept very low for high contrast. */}
-            <ambientLight intensity={0.1} color="#ffffff" />
-
-            {/* 2. Key Light: The main source (Sun-like). Casts shadows and defines form. */}
-            <directionalLight
-                position={[10, 10, 5]}
-                intensity={1.5}
+            <Sparkles
+                count={500}
+                scale={[20, 20, 20]} // Spread over a 20 unit box
+                size={2}
+                speed={0.4}
+                opacity={0.5}
                 color="#ffffff"
             />
 
-            {/* 3. Fill/Rim Light: A cool blue backlight to separate objects from the dark void.
-          This adds that "premium sci-fi" contour to the asteroids. */}
+            {/* 
+        5. SYSTEM DEBRIS (Redmoon Orbit)
+        Subtle red particles near the center to suggest activity/energy.
+      */}
+            <Sparkles
+                count={100}
+                scale={[8, 8, 8]}
+                size={4}
+                speed={0.2}
+                opacity={0.4}
+                color="#ff2a2a"
+            />
+
+            {/* 
+        6. DRAMATIC LIGHTING
+      */}
+
+            {/* Key Light (The "Sun") - Sharp shadows, high intensity */}
+            <directionalLight
+                position={[10, 10, 5]}
+                intensity={2}
+                color="#ffffff"
+                castShadow={false}
+            />
+
+            {/* Fill Light (The "Nebula Glow") - Cool blue rim light */}
             <directionalLight
                 position={[-10, -10, -5]}
-                intensity={0.5}
+                intensity={1}
                 color="#2A9DFF"
             />
+
+            {/* Rim Light (The "Redmoon Glow") - Backlight from center */}
+            <ambientLight intensity={0.1} />
         </>
     );
 }

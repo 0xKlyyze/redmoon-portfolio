@@ -17,32 +17,51 @@ export default function OrbitGroup({ data, index, totalCount }: OrbitGroupProps)
     const groupRef = useRef<THREE.Group>(null);
     const activeAsteroid = useAppStore((state) => state.activeAsteroid);
 
-    // Calculate initial angle to distribute asteroids evenly in the circle
+    // Distribute initially
     const initialAngle = (index / totalCount) * Math.PI * 2;
 
     useFrame((state, delta) => {
         if (groupRef.current) {
-            // Logic: If ANY asteroid is selected (activeAsteroid !== null), 
-            // we slow down the entire solar system to a crawl (0.05x speed).
-            // This prevents the user from getting dizzy while reading details.
+            // 1. Pause logic (Slow Motion on select)
             const speedMultiplier = activeAsteroid ? 0.05 : 1;
 
+            // 2. Rotate the GROUP. This moves the Asteroid along the invisible ring path.
             groupRef.current.rotation.y += data.orbitSpeed * delta * speedMultiplier;
         }
     });
 
     return (
         // The Pivot Point (Center of Scene)
-        <group ref={groupRef} rotation={[0, initialAngle, 0]}>
+        <group rotation={[0, initialAngle, 0]}> {/* Initial offset applied to static container */}
 
-            {/* The Asteroid Position (Offset by radius) */}
-            <group position={[data.orbitDistance, 0, 0]}>
-                <Asteroid data={data} />
+            {/* 
+         THE TRAIL (Static relative to rotation) 
+         This ring sits at the origin but is scaled to the orbit distance.
+         It visualizes the "track" the asteroid runs on.
+      */}
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+                {/* 
+           TorusGeometry args: [radius, tube, radialSegments, tubularSegments]
+           radius = data.orbitDistance
+           tube = 0.02 (Very thin line)
+         */}
+                <torusGeometry args={[data.orbitDistance, 0.02, 16, 100]} />
+                <meshBasicMaterial
+                    color="#6B7280" // Orbital Grey
+                    transparent
+                    opacity={0.1}   // Barely visible guide line
+                />
+            </mesh>
 
-                {/* Optional: Orbit Ring (Visual Guide) 
-            We could add a thin line here to show the path, 
-            but for now we keep it clean.
-        */}
+            {/* 
+         THE MOVER
+         This group rotates, carrying the asteroid.
+      */}
+            <group ref={groupRef}>
+                {/* Position the asteroid at the edge of the ring */}
+                <group position={[data.orbitDistance, 0, 0]}>
+                    <Asteroid data={data} />
+                </group>
             </group>
         </group>
     );

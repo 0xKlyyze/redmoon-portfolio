@@ -36,8 +36,9 @@ export default function Navigation() {
             >
                 <button
                     onClick={() => setCompanyModalOpen(true)}
-                    className="glass-panel px-6 py-3 text-xs font-orbitron font-bold tracking-wider text-hud-silver hover:bg-white/10 hover:border-redmoon-crimson/50 transition-all duration-300"
+                    className="glass-panel px-6 py-3 text-xs font-orbitron font-bold tracking-wider text-hud-silver hover:bg-white/10 hover:border-redmoon-crimson/50 hover:text-white transition-all duration-300 group flex items-center gap-2"
                 >
+                    <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
                     COMPANY_INTEL
                 </button>
             </motion.div>
