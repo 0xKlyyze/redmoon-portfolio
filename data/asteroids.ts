@@ -18,10 +18,29 @@ export const ASTEROIDS: AsteroidData[] = [
             pricingModel: "Subscription",
             techStack: ["Next.js", "Auth0", "PostgreSQL"],
             description: "A unified identity layer connecting all Redmoon ecosystem services through a single secure credential key.",
+            features: [
+                {
+                    name: "Unified Login",
+                    description: "Single Sign-On (SSO) across the entire ecosystem.",
+                    icon: "UserCheck",
+                },
+                {
+                    name: "Role Management",
+                    description: "Granular access control and permission handling.",
+                    icon: "Shield",
+                },
+                {
+                    name: "Audit Logs",
+                    description: "Comprehensive tracking of user activities.",
+                    icon: "Activity",
+                }
+            ],
             links: {
                 liveUrl: "https://example.com",
                 docsUrl: "https://example.com/docs",
                 forgeDashboardUrl: "https://forge.redmoon.com/project/nexus",
+                githubUrl: "https://github.com/redmoon/nexus",
+                twitter: "https://twitter.com/redmoon_nexus",
             },
         },
         pricingPlans: [
@@ -69,9 +88,22 @@ export const ASTEROIDS: AsteroidData[] = [
             pricingModel: "Subscription",
             techStack: ["Rust", "gRPC", "Redis"],
             description: "Low-latency order execution engine designed for institutional digital asset arbitrage.",
+            features: [
+                {
+                    name: "Microsecond Latency",
+                    description: "Optimized execution paths for HFT strategies.",
+                    icon: "Zap",
+                },
+                {
+                    name: "Smart Algorithms",
+                    description: "Pre-built algorithmic trading strategies.",
+                    icon: "Cpu",
+                }
+            ],
             links: {
-                githubUrl: "https://github.com",
+                githubUrl: "https://github.com/redmoon/vertex",
                 forgeDashboardUrl: "https://forge.redmoon.com/project/vertex",
+                discord: "https://discord.gg/redmoon",
             },
         },
         pricingPlans: [
@@ -111,9 +143,22 @@ export const ASTEROIDS: AsteroidData[] = [
             pricingModel: "One-Time",
             techStack: ["React", "Three.js", "WebGL"],
             description: "AI-assisted design tool generating UI component libraries from simple text prompts.",
+            features: [
+                {
+                    name: "AI Generation",
+                    description: "Text-to-UI component generation.",
+                    icon: "Sparkles",
+                },
+                {
+                    name: "Theme Export",
+                    description: "Export to Tailwind, CSS, and Figma.",
+                    icon: "Download",
+                }
+            ],
             links: {
                 liveUrl: "https://example.com",
                 forgeDashboardUrl: "https://forge.redmoon.com/project/nova",
+                productHunt: "https://producthunt.com/posts/nova-design",
             },
         },
         pricingPlans: [
@@ -153,8 +198,15 @@ export const ASTEROIDS: AsteroidData[] = [
             pricingModel: "Free",
             techStack: ["IPFS", "Solidity", "Go"],
             description: "Legacy distributed file storage protocol. Currently in maintenance mode.",
+            features: [
+                {
+                    name: "Distributed Blocks",
+                    description: "Redundant storage across multiple nodes.",
+                    icon: "Database",
+                }
+            ],
             links: {
-                githubUrl: "https://github.com",
+                githubUrl: "https://github.com/redmoon/horizon",
                 forgeDashboardUrl: "https://forge.redmoon.com/project/horizon",
             },
         },
@@ -176,8 +228,20 @@ export const ASTEROIDS: AsteroidData[] = [
             pricingModel: "Subscription",
             techStack: ["Python", "TensorFlow", "Ethereum"],
             description: "Real-time anomaly detection for smart contract interactions and transaction flows.",
+            features: [
+                {
+                    name: "Real-time Scan",
+                    description: "Continuous monitoring of mempool.",
+                    icon: "Eye",
+                },
+                {
+                    name: "Threat Alerts",
+                    description: "Instant notification of suspicious activity.",
+                    icon: "Bell",
+                }
+            ],
             links: {
-                docsUrl: "https://example.com",
+                docsUrl: "https://example.com/aegis",
                 forgeDashboardUrl: "https://forge.redmoon.com/project/aegis",
             },
         },

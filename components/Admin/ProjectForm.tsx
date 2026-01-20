@@ -6,11 +6,18 @@ import { AsteroidData } from '@/types';
 import { useAdmin } from './AdminProvider';
 import ImageUpload from './ImageUpload';
 import ColorPicker from './ColorPicker';
+import * as Icons from 'lucide-react';
 
 interface ProjectFormProps {
     project: AsteroidData | null;
     onClose: () => void;
 }
+
+const AVAILABLE_ICONS = [
+    'Activity', 'Bell', 'Box', 'Code', 'Cpu', 'Database', 'Globe', 'Layers',
+    'Layout', 'Lock', 'MessageSquare', 'Rocket', 'Server', 'Shield', 'Smartphone',
+    'Star', 'Terminal', 'UserCheck', 'Zap', 'Eye', 'Sparkles', 'Download', 'Cloud'
+];
 
 const DEFAULT_PROJECT: Partial<AsteroidData> = {
     name: '',
@@ -52,7 +59,12 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
         project ? { ...project } : { ...DEFAULT_PROJECT }
     );
     const [techStackInput, setTechStackInput] = useState('');
-    const [featuresInput, setFeaturesInput] = useState('');
+
+    // Feature Input State
+    const [featureName, setFeatureName] = useState('');
+    const [featureDesc, setFeatureDesc] = useState('');
+    const [featureIcon, setFeatureIcon] = useState('Star');
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -125,17 +137,35 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
         updateNestedField('metadata', 'techStack', currentStack.filter((_, i) => i !== index));
     }, [formData.metadata?.techStack, updateNestedField]);
 
+    // Enhanced Feature Handlers
     const addFeature = useCallback(() => {
-        if (!featuresInput.trim()) return;
+        if (!featureName.trim() || !featureDesc.trim()) return;
+
+        const newFeature = {
+            name: featureName.trim(),
+            description: featureDesc.trim(),
+            icon: featureIcon
+        };
+
         const currentFeatures = formData.metadata?.features || [];
-        updateNestedField('metadata', 'features', [...currentFeatures, featuresInput.trim()]);
-        setFeaturesInput('');
-    }, [featuresInput, formData.metadata?.features, updateNestedField]);
+        // @ts-ignore - Assuming types are updated
+        updateNestedField('metadata', 'features', [...currentFeatures, newFeature]);
+
+        // Reset inputs
+        setFeatureName('');
+        setFeatureDesc('');
+        setFeatureIcon('Star');
+    }, [featureName, featureDesc, featureIcon, formData.metadata?.features, updateNestedField]);
 
     const removeFeature = useCallback((index: number) => {
         const currentFeatures = formData.metadata?.features || [];
         updateNestedField('metadata', 'features', currentFeatures.filter((_, i) => i !== index));
     }, [formData.metadata?.features, updateNestedField]);
+
+    const updateLink = useCallback((key: keyof NonNullable<AsteroidData['metadata']['links']>, value: string) => {
+        const currentLinks = formData.metadata?.links || {};
+        updateNestedField('metadata', 'links', { ...currentLinks, [key]: value || undefined });
+    }, [formData.metadata?.links, updateNestedField]);
 
     // Pricing Plans Helpers
     const addPricingPlan = useCallback(() => {
@@ -197,7 +227,7 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="w-full max-w-3xl max-h-[90vh] overflow-y-auto glass-panel rounded-xl"
+                className="w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-panel rounded-xl"
             >
                 <form onSubmit={handleSubmit}>
                     {/* Header */}
@@ -262,23 +292,13 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                                         required
                                     />
                                 </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-xs text-orbital-grey mb-2">Catch Phrase</label>
-                                    <input
-                                        type="text"
-                                        value={formData.catchPhrase || ''}
-                                        onChange={(e) => updateField('catchPhrase', e.target.value)}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                        placeholder="Marketing catchphrase for landing page"
-                                    />
-                                </div>
                             </div>
                         </section>
 
                         {/* Visual Properties */}
                         <section>
                             <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
-                                Visual Properties
+                                Visual Properties (3D Scene)
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
@@ -294,124 +314,18 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Size (0.3 - 1.2)</label>
-                                    <input
-                                        type="number"
-                                        min="0.3"
-                                        max="1.2"
-                                        step="0.1"
-                                        value={formData.visualAsset?.size || 0.7}
-                                        onChange={(e) => updateNestedField('visualAsset', 'size', parseFloat(e.target.value))}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                    />
-                                </div>
-                                <div>
                                     <label className="block text-xs text-orbital-grey mb-2">Color</label>
                                     <ColorPicker
                                         value={formData.visualAsset?.color || '#FF2A2A'}
                                         onChange={(color) => updateNestedField('visualAsset', 'color', color)}
                                     />
                                 </div>
-                            </div>
-                            <div className="mt-4">
-                                <label className="block text-xs text-orbital-grey mb-2">Logo</label>
-                                <ImageUpload
-                                    value={formData.visualAsset?.logo}
-                                    onChange={(url) => updateNestedField('visualAsset', 'logo', url)}
-                                    folder="logos"
-                                />
-                            </div>
-                        </section>
-
-                        {/* Gallery / Screenshots */}
-                        <section>
-                            <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
-                                Gallery & Screenshots
-                            </h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                                {formData.screenshots?.map((url, index) => (
-                                    <div key={index} className="relative group aspect-video bg-black/20 rounded border border-white/10 overflow-hidden">
-                                        <img src={url} alt={`Screenshot ${index + 1}`} className="w-full h-full object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeScreenshot(index)}
-                                            className="absolute top-2 right-2 bg-redmoon-crimson/80 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <line x1="18" y1="6" x2="6" y2="18" />
-                                                <line x1="6" y1="6" x2="18" y2="18" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div>
-                                <label className="block text-xs text-orbital-grey mb-2">Add New Screenshot</label>
-                                <ImageUpload
-                                    onChange={addScreenshot}
-                                    folder="screenshots"
-                                />
-                            </div>
-                        </section>
-
-                        {/* Branding Colors */}
-                        <section>
-                            <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
-                                Branding Colors
-                            </h3>
-                            <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Primary</label>
-                                    <ColorPicker
-                                        value={formData.brandingColors?.primary || '#FF2A2A'}
-                                        onChange={(color) => updateNestedField('brandingColors', 'primary', color)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Secondary</label>
-                                    <ColorPicker
-                                        value={formData.brandingColors?.secondary || '#2A9DFF'}
-                                        onChange={(color) => updateNestedField('brandingColors', 'secondary', color)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Accent</label>
-                                    <ColorPicker
-                                        value={formData.brandingColors?.accent || '#00FF94'}
-                                        onChange={(color) => updateNestedField('brandingColors', 'accent', color)}
-                                    />
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Orbit Properties */}
-                        <section>
-                            <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
-                                Orbit Properties
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Orbit Distance (6 - 20)</label>
-                                    <input
-                                        type="number"
-                                        min="6"
-                                        max="20"
-                                        step="1"
-                                        value={formData.orbitDistance || 10}
-                                        onChange={(e) => updateField('orbitDistance', parseFloat(e.target.value))}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Orbit Speed (0.05 - 0.5)</label>
-                                    <input
-                                        type="number"
-                                        min="0.05"
-                                        max="0.5"
-                                        step="0.05"
-                                        value={formData.orbitSpeed || 0.2}
-                                        onChange={(e) => updateField('orbitSpeed', parseFloat(e.target.value))}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
+                                    <label className="block text-xs text-orbital-grey mb-2">Logo</label>
+                                    <ImageUpload
+                                        value={formData.visualAsset?.logo}
+                                        onChange={(url) => updateNestedField('visualAsset', 'logo', url)}
+                                        folder="logos"
                                     />
                                 </div>
                             </div>
@@ -422,25 +336,14 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                             <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
                                 Description
                             </h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Short Description (for HUD)</label>
-                                    <textarea
-                                        value={formData.metadata?.description || ''}
-                                        onChange={(e) => updateNestedField('metadata', 'description', e.target.value)}
-                                        rows={3}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none resize-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Long Description (Markdown supported)</label>
-                                    <textarea
-                                        value={formData.metadata?.longDescription || ''}
-                                        onChange={(e) => updateNestedField('metadata', 'longDescription', e.target.value)}
-                                        rows={6}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none resize-none font-mono text-sm"
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-xs text-orbital-grey mb-2">Short Description (for HUD)</label>
+                                <textarea
+                                    value={formData.metadata?.description || ''}
+                                    onChange={(e) => updateNestedField('metadata', 'description', e.target.value)}
+                                    rows={3}
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none resize-none"
+                                />
                             </div>
                         </section>
 
@@ -485,48 +388,73 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                             </div>
                         </section>
 
-                        {/* Features */}
+                        {/* Modular Features */}
                         <section>
                             <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
                                 Key Features
                             </h3>
-                            <div className="flex gap-2 mb-3">
+
+                            {/* Add Feature Form */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-lg mb-4 space-y-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        value={featureName}
+                                        onChange={(e) => setFeatureName(e.target.value)}
+                                        placeholder="Feature Name"
+                                        className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
+                                    />
+                                    <select
+                                        value={featureIcon}
+                                        onChange={(e) => setFeatureIcon(e.target.value)}
+                                        className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
+                                    >
+                                        {AVAILABLE_ICONS.map(icon => (
+                                            <option key={icon} value={icon}>{icon}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <input
                                     type="text"
-                                    value={featuresInput}
-                                    onChange={(e) => setFeaturesInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                                    placeholder="Add feature..."
-                                    className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
+                                    value={featureDesc}
+                                    onChange={(e) => setFeatureDesc(e.target.value)}
+                                    placeholder="Short description of the feature"
+                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
                                 />
                                 <button
                                     type="button"
                                     onClick={addFeature}
-                                    className="px-4 py-2 bg-neon-green/20 border border-neon-green text-neon-green rounded hover:bg-neon-green/30"
+                                    className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded text-sm transition-colors"
                                 >
-                                    Add
+                                    Add Feature
                                 </button>
                             </div>
-                            <div className="space-y-2">
-                                {formData.metadata?.features?.map((feature, index) => (
-                                    <div
-                                        key={index}
-                                        className="px-4 py-2 bg-white/5 border border-white/10 rounded flex items-center justify-between"
-                                    >
-                                        <span className="text-sm text-white">{feature}</span>
+
+                            {/* Features List */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {formData.metadata?.features?.map((feature: any, index: number) => (
+                                    <div key={index} className="flex items-start gap-3 p-3 bg-white/5 border border-white/10 rounded relative group">
                                         <button
                                             type="button"
                                             onClick={() => removeFeature(index)}
-                                            className="text-orbital-grey hover:text-redmoon-crimson"
+                                            className="absolute top-2 right-2 text-orbital-grey hover:text-redmoon-crimson opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
-                                            ×
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
                                         </button>
+                                        <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
+                                            {/* @ts-ignore */}
+                                            {Icons[feature.icon] ? <Icons.Star className="w-4 h-4 text-white" /> : <span className="text-xs">?</span>}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-white">{feature.name}</h4>
+                                            <p className="text-xs text-white/60 leading-tight mt-1">{feature.description}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </section>
 
-                        {/* Pricing Plans (New) */}
+                        {/* Pricing Plans (New Layout) */}
                         <section>
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider">
@@ -564,19 +492,6 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] text-orbital-grey mb-1">Description</label>
-                                                <input
-                                                    type="text"
-                                                    value={plan.description}
-                                                    onChange={(e) => updatePricingPlan(index, 'description', e.target.value)}
-                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                                    placeholder="Brief description"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <div>
                                                 <label className="block text-[10px] text-orbital-grey mb-1">Price</label>
                                                 <input
                                                     type="number"
@@ -585,179 +500,110 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                                                     className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
                                                 />
                                             </div>
-                                            <div>
-                                                <label className="block text-[10px] text-orbital-grey mb-1">Cycle</label>
-                                                <select
-                                                    value={plan.billingCycle}
-                                                    onChange={(e) => updatePricingPlan(index, 'billingCycle', e.target.value)}
-                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                                >
-                                                    <option value="monthly">Monthly</option>
-                                                    <option value="yearly">Yearly</option>
-                                                    <option value="one-time">One-Time</option>
-                                                    <option value="free">Free</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] text-orbital-grey mb-1">Highlight</label>
-                                                <div className="flex items-center h-[38px]">
-                                                    <label className="flex items-center gap-2 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={plan.highlighted}
-                                                            onChange={(e) => updatePricingPlan(index, 'highlighted', e.target.checked)}
-                                                            className="w-4 h-4 rounded border-white/20 bg-black/20"
-                                                        />
-                                                        <span className="text-xs text-white">Popular?</span>
-                                                    </label>
-                                                </div>
-                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-[10px] text-orbital-grey mb-1">Features (comma separated)</label>
-                                            <input
-                                                type="text"
-                                                value={plan.features.join(', ')}
-                                                onChange={(e) => updatePricingPlan(index, 'features', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                                                className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                                placeholder="Feature 1, Feature 2..."
-                                            />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-[10px] text-orbital-grey mb-1">Description</label>
+                                                <input
+                                                    type="text"
+                                                    value={plan.description}
+                                                    onChange={(e) => updatePricingPlan(index, 'description', e.target.value)}
+                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] text-orbital-grey mb-1">Features (comma separated)</label>
+                                                <input
+                                                    type="text"
+                                                    value={plan.features.join(', ')}
+                                                    onChange={(e) => updatePricingPlan(index, 'features', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </section>
 
-                        {/* Standard Pricing (Legacy) */}
+                        {/* All Links including Socials */}
                         <section>
                             <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
-                                Standard Pricing (Legacy Configuration)
+                                Project & Social Links
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Pricing Model</label>
-                                    <select
-                                        value={formData.metadata?.pricingModel || 'Subscription'}
-                                        onChange={(e) => updateNestedField('metadata', 'pricingModel', e.target.value)}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                    >
-                                        <option value="Subscription">Subscription</option>
-                                        <option value="One-Time">One-Time</option>
-                                        <option value="Free">Free</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Currency</label>
-                                    <select
-                                        value={formData.pricing?.currency || 'USD'}
-                                        onChange={(e) => updateNestedField('pricing', 'currency', e.target.value)}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                    >
-                                        <option value="USD">USD</option>
-                                        <option value="EUR">EUR</option>
-                                        <option value="GBP">GBP</option>
-                                        <option value="JPY">JPY</option>
-                                    </select>
-                                </div>
-                                {formData.metadata?.pricingModel === 'Subscription' && (
-                                    <>
-                                        <div>
-                                            <label className="block text-xs text-orbital-grey mb-2">Monthly Price</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={formData.pricing?.monthlyPrice || ''}
-                                                onChange={(e) => updateNestedField('pricing', 'monthlyPrice', parseFloat(e.target.value) || undefined)}
-                                                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-orbital-grey mb-2">Yearly Price</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={formData.pricing?.yearlyPrice || ''}
-                                                onChange={(e) => updateNestedField('pricing', 'yearlyPrice', parseFloat(e.target.value) || undefined)}
-                                                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                            />
-                                        </div>
-                                    </>
-                                )}
-                                {formData.metadata?.pricingModel === 'One-Time' && (
-                                    <div className="md:col-span-2">
-                                        <label className="block text-xs text-orbital-grey mb-2">One-Time Price</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            value={formData.pricing?.oneTimePrice || ''}
-                                            onChange={(e) => updateNestedField('pricing', 'oneTimePrice', parseFloat(e.target.value) || undefined)}
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        </section>
-
-                        {/* Links */}
-                        <section>
-                            <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
-                                Links
-                            </h3>
-                            <div className="grid grid-cols-1 gap-4">
-                                <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Live URL</label>
-                                    <input
-                                        type="url"
-                                        value={formData.metadata?.links?.liveUrl || ''}
-                                        onChange={(e) => {
-                                            const links = { ...formData.metadata?.links, liveUrl: e.target.value || undefined };
-                                            updateNestedField('metadata', 'links', links);
-                                        }}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                        placeholder="https://..."
-                                    />
-                                </div>
                                 <div>
                                     <label className="block text-xs text-orbital-grey mb-2">Forge Dashboard URL</label>
                                     <input
                                         type="url"
                                         value={formData.metadata?.links?.forgeDashboardUrl || ''}
-                                        onChange={(e) => {
-                                            const links = { ...formData.metadata?.links, forgeDashboardUrl: e.target.value || undefined };
-                                            updateNestedField('metadata', 'links', links);
-                                        }}
+                                        onChange={(e) => updateLink('forgeDashboardUrl', e.target.value)}
                                         className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
                                         placeholder="https://forge.redmoon.com/..."
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">Documentation URL</label>
+                                    <label className="block text-xs text-orbital-grey mb-2">Live Application URL</label>
                                     <input
                                         type="url"
-                                        value={formData.metadata?.links?.docsUrl || ''}
-                                        onChange={(e) => {
-                                            const links = { ...formData.metadata?.links, docsUrl: e.target.value || undefined };
-                                            updateNestedField('metadata', 'links', links);
-                                        }}
+                                        value={formData.metadata?.links?.liveUrl || ''}
+                                        onChange={(e) => updateLink('liveUrl', e.target.value)}
                                         className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                        placeholder="https://..."
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-orbital-grey mb-2">GitHub URL</label>
+                                    <label className="block text-xs text-orbital-grey mb-2">Documentation</label>
+                                    <input
+                                        type="url"
+                                        value={formData.metadata?.links?.docsUrl || ''}
+                                        onChange={(e) => updateLink('docsUrl', e.target.value)}
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-orbital-grey mb-2">GitHub Repository</label>
                                     <input
                                         type="url"
                                         value={formData.metadata?.links?.githubUrl || ''}
-                                        onChange={(e) => {
-                                            const links = { ...formData.metadata?.links, githubUrl: e.target.value || undefined };
-                                            updateNestedField('metadata', 'links', links);
-                                        }}
+                                        onChange={(e) => updateLink('githubUrl', e.target.value)}
                                         className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
-                                        placeholder="https://github.com/..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-orbital-grey mb-2">Twitter / X</label>
+                                    <input
+                                        type="url"
+                                        value={formData.metadata?.links?.twitter || ''}
+                                        onChange={(e) => updateLink('twitter', e.target.value)}
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-orbital-grey mb-2">Discord Invitation</label>
+                                    <input
+                                        type="url"
+                                        value={formData.metadata?.links?.discord || ''}
+                                        onChange={(e) => updateLink('discord', e.target.value)}
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-orbital-grey mb-2">Product Hunt</label>
+                                    <input
+                                        type="url"
+                                        value={formData.metadata?.links?.productHunt || ''}
+                                        onChange={(e) => updateLink('productHunt', e.target.value)}
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-orbital-grey mb-2">Support Email</label>
+                                    <input
+                                        type="email"
+                                        value={formData.metadata?.links?.supportEmail || ''}
+                                        onChange={(e) => updateLink('supportEmail', e.target.value)}
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded text-white focus:border-tech-blue focus:outline-none"
                                     />
                                 </div>
                             </div>

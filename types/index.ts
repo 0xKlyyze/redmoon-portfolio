@@ -33,12 +33,25 @@ export interface AsteroidData {
         techStack: string[];
         description: string; // Short description for HUD
         longDescription?: string; // Full markdown description for landing page
-        features?: string[]; // Key features list
+        features?: {
+            name: string;
+            description: string;
+            icon: string; // lucide icon name
+        }[]; // Key features list
         links: {
+            // Main Actions
             liveUrl?: string;
-            docsUrl?: string;
-            githubUrl?: string;
             forgeDashboardUrl?: string; // Forge Dashboard public view URL
+            docsUrl?: string;
+
+            // Social & Community
+            githubUrl?: string;
+            twitter?: string;
+            productHunt?: string;
+            facebook?: string;
+            reddit?: string;
+            discord?: string;
+            supportEmail?: string;
         };
     };
 
