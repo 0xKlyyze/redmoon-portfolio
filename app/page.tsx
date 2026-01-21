@@ -19,7 +19,9 @@ export default function Home() {
 
   useEffect(() => {
     // Check WebGL support on mount
+    console.log("Checking WebGL availability...");
     const available = isWebGLAvailable();
+    console.log("WebGL available:", available);
     setWebGLAvailable(available);
   }, []);
 
