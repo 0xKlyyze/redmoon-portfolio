@@ -22,7 +22,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error("Uncaught error:", error, errorInfo);
-        // Here you would normally log to Sentry or Analytics
+        // Here you would normally log to Sentry or Analytics (pp chicken)
     }
 
     public render() {
