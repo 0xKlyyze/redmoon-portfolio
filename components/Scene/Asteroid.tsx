@@ -4,7 +4,7 @@ import { useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useCursor, useTexture, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
-import { damp3 } from "maath/easing";
+import { damp3, dampE } from "maath/easing";
 import { AsteroidProps } from "@/types";
 import { useAppStore } from "@/store/useAppStore";
 import AsteroidTrail from "./AsteroidTrail";
@@ -119,9 +119,11 @@ export default function Asteroid({ data }: AsteroidProps) {
     useFrame((state, delta) => {
         if (!meshRef.current) return;
 
-        meshRef.current.rotation.x += delta * asteroidProps.rotationX;
-        meshRef.current.rotation.y += delta * asteroidProps.rotationY;
-        meshRef.current.rotation.z += delta * asteroidProps.rotationZ;
+        // Dynamic rotation - faster when hovered
+        const rotationSpeedMultiplier = hovered ? 2.5 : 1;
+        meshRef.current.rotation.x += delta * asteroidProps.rotationX * rotationSpeedMultiplier;
+        meshRef.current.rotation.y += delta * asteroidProps.rotationY * rotationSpeedMultiplier;
+        meshRef.current.rotation.z += delta * asteroidProps.rotationZ * rotationSpeedMultiplier;
 
         if (rimRef.current) {
             rimRef.current.rotation.copy(meshRef.current.rotation);
@@ -129,6 +131,14 @@ export default function Asteroid({ data }: AsteroidProps) {
 
         const targetScale = hovered ? 1.3 : isSelected ? 1.2 : 1;
         damp3(meshRef.current.scale, [targetScale, targetScale, targetScale], 0.1, delta);
+
+        // Smooth Color Transitions
+        // @ts-ignore
+        dampE(meshRef.current.material.emissive, hovered ? asteroidProps.brandColor : new THREE.Color(0x000000), 0.1, delta);
+        // @ts-ignore
+        const targetIntensity = isSelected ? 2 : hovered ? 1.5 : 0.2;
+        // @ts-ignore
+        meshRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(meshRef.current.material.emissiveIntensity, targetIntensity, delta * 3);
 
         if (rimRef.current) {
             damp3(rimRef.current.scale, [targetScale * 1.15, targetScale * 1.15, targetScale * 1.15], 0.12, delta);
@@ -171,9 +181,9 @@ export default function Asteroid({ data }: AsteroidProps) {
                     )}
                     roughness={asteroidProps.roughness}
                     metalness={asteroidProps.metalness}
-                    color={hovered ? "#ffffff" : asteroidProps.surfaceColor}
+                    color={hovered ? new THREE.Color("#ffffff").lerp(asteroidProps.surfaceColor, 0.5) : asteroidProps.surfaceColor}
                     emissive={asteroidProps.brandColor}
-                    emissiveIntensity={isSelected ? 0.2 : hovered ? 0.1 : 0.03}
+                    emissiveIntensity={0.2}
                 />
             </mesh>
 
@@ -186,7 +196,7 @@ export default function Asteroid({ data }: AsteroidProps) {
                 <meshBasicMaterial
                     color={asteroidProps.brandColor}
                     transparent={true}
-                    opacity={isSelected ? 0.35 : hovered ? 0.2 : asteroidProps.rimOpacity}
+                    opacity={isSelected ? 0.4 : hovered ? 0.25 : asteroidProps.rimOpacity}
                     side={THREE.BackSide}
                     depthWrite={false}
                 />
@@ -195,10 +205,10 @@ export default function Asteroid({ data }: AsteroidProps) {
             {/* Dust Particles */}
             <Sparkles
                 count={asteroidProps.particleCount}
-                scale={data.visualAsset.size * 2.5}
-                size={1}
-                speed={0.15}
-                opacity={isSelected ? 0.7 : 0.25}
+                scale={data.visualAsset.size * (hovered ? 3 : 2.5)}
+                size={hovered ? 2 : 1}
+                speed={hovered ? 0.4 : 0.15}
+                opacity={isSelected ? 0.8 : hovered ? 0.6 : 0.25}
                 color={asteroidProps.brandColor}
             />
 

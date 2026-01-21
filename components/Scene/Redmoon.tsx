@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useTexture, Sparkles } from "@react-three/drei";
+import { useTexture, Sparkles, useCursor } from "@react-three/drei";
 import * as THREE from "three";
+import { damp3, dampE } from "maath/easing";
 
 export default function Redmoon() {
     const coreRef = useRef<THREE.Mesh>(null);
@@ -12,6 +13,9 @@ export default function Redmoon() {
     const innerGlowRef = useRef<THREE.Mesh>(null);
     const outerGlowRef = useRef<THREE.Mesh>(null);
     const hazeRef = useRef<THREE.Mesh>(null);
+
+    const [hovered, setHover] = useState(false);
+    useCursor(hovered);
 
     // Load high-res textures
     const [colorMap, normalMap] = useTexture([
@@ -25,26 +29,41 @@ export default function Redmoon() {
 
     useFrame((state, delta) => {
         const time = state.clock.elapsedTime;
+        const rotationSpeed = hovered ? 0.06 : 0.03;
 
         // Planet rotation with subtle wobble
         if (coreRef.current) {
-            coreRef.current.rotation.y += delta * 0.03;
+            coreRef.current.rotation.y += delta * rotationSpeed;
             coreRef.current.rotation.x = Math.sin(time * 0.1) * 0.02;
+
+            // Pulse emissive intensity on hover
+            const targetEmissive = hovered ? 0.8 : 0.25;
+            // @ts-ignore
+            dampE(coreRef.current.material.emissive, hovered ? new THREE.Color("#ff4030") : emissiveColor, 0.2, delta);
+            // @ts-ignore
+            const currentIntensity = coreRef.current.material.emissiveIntensity;
+            // @ts-ignore
+            coreRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(currentIntensity, targetEmissive, delta * 2);
         }
 
         // Data shell complex rotation
         if (shellRef.current) {
-            shellRef.current.rotation.y -= delta * 0.06;
+            shellRef.current.rotation.y -= delta * (rotationSpeed * 2);
             shellRef.current.rotation.x = Math.sin(time * 0.2) * 0.08;
+
+            const targetScale = hovered ? 1.05 : 1;
+            damp3(shellRef.current.scale, [targetScale, targetScale, targetScale], 0.2, delta);
         }
 
         // Animate inner glow with breathing effect
         if (innerGlowRef.current) {
-            const breathe = 1 + Math.sin(time * 0.8) * 0.015;
+            const baseScale = hovered ? 1.1 : 1;
+            const breathe = baseScale + Math.sin(time * 0.8) * 0.015;
             innerGlowRef.current.scale.setScalar(breathe);
 
             const material = innerGlowRef.current.material as THREE.MeshBasicMaterial;
-            material.opacity = 0.15 + Math.sin(time * 0.5) * 0.05;
+            const targetOpacity = hovered ? 0.3 : 0.15;
+            material.opacity = THREE.MathUtils.lerp(material.opacity, targetOpacity + Math.sin(time * 0.5) * 0.05, delta * 2);
         }
 
         // Animate outer glow
@@ -58,14 +77,24 @@ export default function Redmoon() {
             hazeRef.current.rotation.y += delta * 0.01;
             hazeRef.current.rotation.z += delta * 0.005;
         }
+
+        // Group scale for subtle pop
+        if (groupRef.current) {
+            const targetScale = hovered ? 1.02 : 1;
+            damp3(groupRef.current.scale, [targetScale, targetScale, targetScale], 0.2, delta);
+        }
     });
 
     return (
-        <group ref={groupRef}>
+        <group
+            ref={groupRef}
+            onPointerOver={() => setHover(true)}
+            onPointerOut={() => setHover(false)}
+        >
             {/* Central light source - the "heart" of Redmoon */}
             <pointLight
                 color="#ff4040"
-                intensity={6}
+                intensity={hovered ? 8 : 6}
                 distance={35}
                 decay={2}
             />
@@ -151,11 +180,11 @@ export default function Redmoon() {
                 Active particles near the surface
             */}
             <Sparkles
-                count={150}
+                count={hovered ? 250 : 150}
                 scale={[6, 6, 6]}
-                size={2.5}
-                speed={0.3}
-                opacity={0.4}
+                size={hovered ? 3.5 : 2.5}
+                speed={hovered ? 0.5 : 0.3}
+                opacity={hovered ? 0.6 : 0.4}
                 color="#ff4040"
             />
 

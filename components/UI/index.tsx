@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Navigation from "./Navigation";
+import HeroOverlay from "./HeroOverlay";
 import HUD from "./HUD";
 import CompanyModal from "./CompanyModal";
 import { AdminProvider, AdminPanel } from "@/components/Admin";
@@ -19,6 +20,7 @@ export default function UIOverlay() {
         <AdminProvider>
             <div className="ui-layer absolute inset-0 pointer-events-none">
                 <Navigation />
+                <HeroOverlay />
                 <HUD />
                 <CompanyModal />
                 <AdminPanel />
