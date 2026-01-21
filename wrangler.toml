@@ -1,0 +1,14 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "redmoon-portfolio"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Add public environment variables here if needed
+# Sensitive variables should be added via the Cloudflare Dashboard
+NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSyA6FK2UE7aT0T9IiU1uV5mibJ-VTpDF-24"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="redmoon-portfolio.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="redmoon-portfolio"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="redmoon-portfolio.firebasestorage.app"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="y35509083362"
+NEXT_PUBLIC_FIREBASE_APP_ID="1:35509083362:web:49d61991b2ccfaa45e52bb"

@@ -3,17 +3,20 @@
 import { EffectComposer, Bloom, Noise, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 
+const EffectComposerEnv = EffectComposer as any;
+const BloomEnv = Bloom as any;
 const NoiseEnv = Noise as any;
+const VignetteEnv = Vignette as any;
 
 export default function Effects() {
     return (
-        <EffectComposer disableNormalPass>
+        <EffectComposerEnv disableNormalPass>
             {/* 
         Bloom: The "Glow" Effect 
         luminanceThreshold: Only bright things (emissive materials) will glow.
         mipmapBlur: Creates a softer, more natural light bleed.
       */}
-            <Bloom
+            <BloomEnv
                 luminanceThreshold={0.2}
                 mipmapBlur
                 intensity={1.5}
@@ -34,11 +37,11 @@ export default function Effects() {
         Vignette: Cinematic Framing
         Darkens the edges of the screen.
       */}
-            <Vignette
+            <VignetteEnv
                 eskil={false}
                 offset={0.1}
                 darkness={1.1}
             />
-        </EffectComposer>
+        </EffectComposerEnv>
     );
 }
