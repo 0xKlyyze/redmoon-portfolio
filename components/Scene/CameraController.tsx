@@ -185,10 +185,17 @@ export default function CameraController() {
             // Move camera
             damp3(state.camera.position, cameraTarget, 0.15, smoothDelta);
 
-            // Turn look-at from Center to Asteroid
+            // Turn look-at from Center to Asteroid with Offset for HUD
             if (controls) {
-                // Smoothly switch attention to asteroid
-                damp3(controls.target, asteroidPos, 0.15, smoothDelta);
+                // Calculate Offset (Shift target right => Asteroid moves left)
+                const direction = new THREE.Vector3().subVectors(asteroidPos, state.camera.position).normalize();
+                const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
+                const OFFSET_AMOUNT = 1.5; // Shift to make room for HUD
+
+                const targetWithOffset = asteroidPos.clone().add(right.multiplyScalar(OFFSET_AMOUNT));
+
+                // Smoothly switch attention to asteroid + offset
+                damp3(controls.target, targetWithOffset, 0.15, smoothDelta);
             }
 
             // Check arrival
@@ -210,7 +217,14 @@ export default function CameraController() {
             damp3(state.camera.position, cameraTarget, 0.1, smoothDelta);
 
             if (controls) {
-                damp3(controls.target, asteroidPos, 0.1, smoothDelta);
+                // Calculate Offset (Shift target right => Asteroid moves left)
+                const direction = new THREE.Vector3().subVectors(asteroidPos, state.camera.position).normalize();
+                const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
+                const OFFSET_AMOUNT = 1.5; // Shift to make room for HUD
+
+                const targetWithOffset = asteroidPos.clone().add(right.multiplyScalar(OFFSET_AMOUNT));
+
+                damp3(controls.target, targetWithOffset, 0.1, smoothDelta);
             }
             return;
         }

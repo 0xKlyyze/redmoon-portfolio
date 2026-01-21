@@ -1,5 +1,5 @@
 {
-  "name": "Redmoon Inc.",
+  "name": "Redmoon",
   "short_name": "Redmoon",
   "icons": [
     {
@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#0f0000",
-  "background_color": "#251111",
+  "theme_color": "#171b26",
+  "background_color": "#171b26",
   "display": "standalone"
 }

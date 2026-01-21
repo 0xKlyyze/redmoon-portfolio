@@ -2,6 +2,7 @@
 
 import { useAppStore } from "@/store/useAppStore";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function Navigation() {
     const setActiveAsteroid = useAppStore((state) => state.setActiveAsteroid);
@@ -17,14 +18,24 @@ export default function Navigation() {
             >
                 <button
                     onClick={() => setActiveAsteroid(null)} // Reset camera to overview
-                    className="group flex flex-col items-start"
+                    className="group flex flex-row items-center gap-4"
                 >
-                    <h1 className="font-orbitron text-2xl font-bold tracking-widest text-hud-silver group-hover:text-white transition-colors">
-                        REDMOON
-                    </h1>
-                    <span className="text-[10px] font-mono text-orbital-grey tracking-[0.2em] group-hover:text-redmoon-crimson transition-colors">
-                        DIGITAL HOLDING
-                    </span>
+                    <div className="relative w-10 h-10 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                        <Image
+                            src="/favicon/favicon.svg"
+                            alt="Redmoon Logo"
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
+                    <div className="flex flex-col items-start">
+                        <h1 className="font-orbitron text-2xl font-bold tracking-widest text-hud-silver group-hover:text-white transition-colors">
+                            REDMOON
+                        </h1>
+                        <span className="text-[10px] font-mono text-orbital-grey tracking-[0.2em] group-hover:text-redmoon-crimson transition-colors">
+                            DIGITAL HOLDING
+                        </span>
+                    </div>
                 </button>
             </motion.div>
 
