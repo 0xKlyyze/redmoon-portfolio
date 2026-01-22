@@ -5,8 +5,10 @@ import { useFrame } from "@react-three/fiber";
 import { useTexture, Sparkles, useCursor } from "@react-three/drei";
 import * as THREE from "three";
 import { damp3, dampE } from "maath/easing";
+import { useAppStore } from "@/store/useAppStore";
 
 export default function Redmoon() {
+    const triggerPulse = useAppStore((state) => state.triggerPulse);
     const coreRef = useRef<THREE.Mesh>(null);
     const shellRef = useRef<THREE.Mesh>(null);
     const groupRef = useRef<THREE.Group>(null);
@@ -90,6 +92,10 @@ export default function Redmoon() {
             ref={groupRef}
             onPointerOver={() => setHover(true)}
             onPointerOut={() => setHover(false)}
+            onClick={(e) => {
+                e.stopPropagation();
+                triggerPulse();
+            }}
         >
             {/* Central light source - the "heart" of Redmoon */}
             <pointLight

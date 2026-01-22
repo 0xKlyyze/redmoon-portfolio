@@ -24,6 +24,10 @@ interface AppState {
     fetchAsteroids: () => Promise<void>;
     refreshAsteroids: () => Promise<void>;
     setAsteroids: (asteroids: AsteroidData[]) => void;
+
+    // Animation Triggers
+    lastInteractionTime: number;
+    triggerPulse: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -35,11 +39,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     isLoading: false,
     dataSource: 'static',
 
+    // Animation Triggers
+    // Animation Triggers
+    lastInteractionTime: 0,
+
     // Actions
     setActiveAsteroid: (id) => set({ activeAsteroid: id }),
     setIsTransitioning: (value) => set({ isTransitioning: value }),
     setCompanyModalOpen: (value) => set({ isCompanyModalOpen: value }),
     setAsteroids: (asteroids) => set({ asteroids }),
+    triggerPulse: () => set({ lastInteractionTime: Date.now() }),
 
     // Fetch asteroids from API
     fetchAsteroids: async () => {

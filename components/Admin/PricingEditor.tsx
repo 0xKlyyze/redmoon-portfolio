@@ -11,7 +11,7 @@ interface PricingEditorProps {
     onChange: (plans: PricingPlan[]) => void;
 }
 
-export default function PricingEditor({ plans = [], onChange }: PricingEditorProps) {
+export default function PricingEditor({ plans = [], onChange, brandColor = '#2A9DFF' }: PricingEditorProps & { brandColor?: string }) {
     const handleAdd = () => {
         const newPlan: PricingPlan = {
             name: 'New Plan',
@@ -44,7 +44,8 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                 <button
                     type="button"
                     onClick={handleAdd}
-                    className="px-3 py-1 bg-neon-green/20 border border-neon-green text-neon-green text-xs rounded hover:bg-neon-green/30 flex items-center gap-1"
+                    className="px-3 py-1 bg-white/5 border border-white/10 text-white text-xs rounded hover:bg-white/10 flex items-center gap-1 transition-colors"
+                    style={{ borderColor: brandColor, color: brandColor }}
                 >
                     <Icons.Plus className="w-3 h-3" />
                     <span>Add Plan</span>
@@ -59,18 +60,25 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className={`relative p-5 bg-white/5 border rounded-xl transition-all ${plan.highlighted
-                                    ? 'border-tech-blue shadow-[0_0_15px_rgba(42,157,255,0.1)]'
-                                    : 'border-white/10'
-                                }`}
+                            className={`relative p-5 bg-black/40 border rounded-xl transition-all overflow-hidden group`}
+                            style={{
+                                borderColor: plan.highlighted ? brandColor : 'rgba(255,255,255,0.1)',
+                                boxShadow: plan.highlighted ? `0 0 20px ${brandColor}20` : 'none'
+                            }}
                         >
+                            {/* Decorative Top Border */}
+                            <div
+                                className="absolute top-0 left-0 w-full h-1 opacity-50 transition-opacity"
+                                style={{ backgroundColor: brandColor }}
+                            />
+
                             {/* Card Header Actions */}
                             <div className="absolute top-3 right-3 flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() => handleUpdate(index, { highlighted: !plan.highlighted })}
-                                    className={`p-1.5 rounded transition-colors ${plan.highlighted ? 'text-tech-blue bg-tech-blue/10' : 'text-orbital-grey hover:text-white'
-                                        }`}
+                                    className={`p-1.5 rounded transition-colors ${plan.highlighted ? 'opacity-100' : 'text-orbital-grey hover:text-white'}`}
+                                    style={{ color: plan.highlighted ? brandColor : undefined }}
                                     title="Toggle Highlight"
                                 >
                                     <Icons.Star className={`w-4 h-4 ${plan.highlighted ? 'fill-current' : ''}`} />
@@ -94,7 +102,10 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                                             type="text"
                                             value={plan.name}
                                             onChange={(e) => handleUpdate(index, { name: e.target.value })}
-                                            className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm font-bold focus:border-tech-blue focus:outline-none"
+                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm font-bold focus:outline-none transition-colors"
+                                            style={{ caretColor: brandColor }}
+                                            onFocus={(e) => e.target.style.borderColor = brandColor}
+                                            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                             placeholder="e.g. Starter"
                                         />
                                     </div>
@@ -105,8 +116,11 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                                                 <input
                                                     type="number"
                                                     value={plan.price}
-                                                    onChange={(e) => handleUpdate(index, { price: parseFloat(e.target.value) })}
-                                                    className="w-full px-3 py-2 pl-8 bg-black/20 border border-white/10 rounded text-white text-sm focus:border-tech-blue focus:outline-none"
+                                                    onChange={(e) => handleUpdate(index, { price: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+                                                    className="w-full px-3 py-2 pl-8 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none transition-colors"
+                                                    style={{ caretColor: brandColor }}
+                                                    onFocus={(e) => e.target.style.borderColor = brandColor}
+                                                    onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                                 />
                                                 <span className="absolute left-3 top-2 text-white/40">$</span>
                                             </div>
@@ -116,7 +130,10 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                                             <select
                                                 value={plan.currency}
                                                 onChange={(e) => handleUpdate(index, { currency: e.target.value })}
-                                                className="w-full px-2 py-2 bg-black/20 border border-white/10 rounded text-white text-sm focus:border-tech-blue focus:outline-none"
+                                                className="w-full px-2 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none"
+                                                style={{ caretColor: brandColor }}
+                                                onFocus={(e) => e.target.style.borderColor = brandColor}
+                                                onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                             >
                                                 <option value="USD">USD</option>
                                                 <option value="EUR">EUR</option>
@@ -130,7 +147,9 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                                             // @ts-ignore
                                             value={plan.billingCycle}
                                             onChange={(e) => handleUpdate(index, { billingCycle: e.target.value as any })}
-                                            className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm focus:border-tech-blue focus:outline-none"
+                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none"
+                                            onFocus={(e) => e.target.style.borderColor = brandColor}
+                                            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                         >
                                             <option value="monthly">Monthly</option>
                                             <option value="yearly">Yearly</option>
@@ -148,7 +167,9 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                                             type="text"
                                             value={plan.description}
                                             onChange={(e) => handleUpdate(index, { description: e.target.value })}
-                                            className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm focus:border-tech-blue focus:outline-none"
+                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none"
+                                            onFocus={(e) => e.target.style.borderColor = brandColor}
+                                            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                             placeholder="Brief tagline for this plan"
                                         />
                                     </div>
@@ -157,7 +178,10 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                                         <textarea
                                             value={plan.features.join('\n')}
                                             onChange={(e) => handleUpdate(index, { features: e.target.value.split('\n') })}
-                                            className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm focus:border-tech-blue focus:outline-none font-mono"
+                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none font-mono"
+                                            style={{ caretColor: brandColor }}
+                                            onFocus={(e) => e.target.style.borderColor = brandColor}
+                                            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                             rows={4}
                                             placeholder="One feature per line..."
                                         />
@@ -175,7 +199,11 @@ export default function PricingEditor({ plans = [], onChange }: PricingEditorPro
                             <Icons.CreditCard className="w-6 h-6 text-white/20" />
                         </div>
                         <p className="text-white/40 text-sm">No pricing plans added yet.</p>
-                        <button onClick={handleAdd} className="mt-2 text-tech-blue hover:text-white text-xs underline">
+                        <button
+                            onClick={handleAdd}
+                            className="mt-2 text-xs underline hover:text-white"
+                            style={{ color: brandColor }}
+                        >
                             Add your first plan
                         </button>
                     </div>

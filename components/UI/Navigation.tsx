@@ -7,6 +7,7 @@ import Image from "next/image";
 export default function Navigation() {
     const setActiveAsteroid = useAppStore((state) => state.setActiveAsteroid);
     const setCompanyModalOpen = useAppStore((state) => state.setCompanyModalOpen);
+    const triggerPulse = useAppStore((state) => state.triggerPulse);
 
     return (
         <>
@@ -24,7 +25,10 @@ export default function Navigation() {
                 <div className="px-6 md:px-10 py-4 md:py-5 flex items-center justify-between">
                     {/* Left: Brand */}
                     <motion.button
-                        onClick={() => setActiveAsteroid(null)}
+                        onClick={() => {
+                            setActiveAsteroid(null);
+                            triggerPulse();
+                        }}
                         className="group flex flex-row items-center gap-4 relative"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

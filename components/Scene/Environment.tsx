@@ -1,6 +1,69 @@
-"use client";
-
+import { useRef, useMemo } from "react";
 import { Stars, Sparkles, Environment } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { useAppStore } from "@/store/useAppStore";
+import { damp } from "maath/easing";
+
+function WarpEffect() {
+    const lastInteractionTime = useAppStore((state) => state.lastInteractionTime);
+    const starsRef = useRef<any>(null);
+
+    // Use refs for smooth decay
+    const warpIntensity = useRef(0);
+    const colorFlashIntensity = useRef(0);
+
+    useFrame((state, delta) => {
+        // Calculate time since last pulse
+        const timeSincePulse = Date.now() - lastInteractionTime;
+        const isPulsing = timeSincePulse < 2000;
+        const isFlashing = timeSincePulse < 500; // Quick flash
+
+        // Target intensity: 1 if pulsing, 0 if not
+        const targetIntensity = isPulsing ? 1 : 0;
+        const targetFlash = isFlashing ? 1 - (timeSincePulse / 500) : 0;
+
+        // Smoothly damp the intensities
+        damp(warpIntensity, 'current', targetIntensity, 0.25, delta);
+        damp(colorFlashIntensity, 'current', targetFlash, 0.1, delta);
+
+        if (starsRef.current) {
+            // Accelerate stars based on intensity
+            const currentSpeed = THREE.MathUtils.lerp(1, 30, warpIntensity.current);
+            starsRef.current.speed = currentSpeed;
+
+            // Stretch stars into lines during warp
+            const currentFactor = THREE.MathUtils.lerp(4, 25, warpIntensity.current);
+            starsRef.current.factor = currentFactor;
+        }
+
+        // Dramatic fog color flash - goes deep crimson then fades
+        if (state.scene.fog) {
+            const baseColor = new THREE.Color("#0a0a0a");
+            const pulseColor = new THREE.Color("#2a0808"); // Deeper red for dramatic effect
+            const flashColor = new THREE.Color("#400a0a"); // Even deeper on flash peak
+
+            // Blend between pulse and flash colors based on flash intensity
+            const targetColor = new THREE.Color().lerpColors(pulseColor, flashColor, colorFlashIntensity.current);
+            // @ts-ignore
+            state.scene.fog.color.lerpColors(baseColor, targetColor, warpIntensity.current);
+        }
+    });
+
+    return (
+        <Stars
+            ref={starsRef}
+            radius={100}
+            depth={50}
+            count={5000}
+            factor={4}
+            saturation={0}
+            fade
+            speed={1}
+        />
+    );
+}
+
 
 export default function SpaceEnvironment() {
     return (
@@ -22,19 +85,9 @@ export default function SpaceEnvironment() {
             <Environment preset="city" environmentIntensity={0.2} />
 
             {/* 
-        3. BACKGROUND STARS (Infinite Distance)
-        Static background to provide context.
-        saturation={0}: Pure white stars (cleaner).
+        3. BACKGROUND STARS (Reacts to Warp)
       */}
-            <Stars
-                radius={100}
-                depth={50}
-                count={5000}
-                factor={4}
-                saturation={0}
-                fade
-                speed={1}
-            />
+            <WarpEffect />
 
             {/* 
         4. VOLUMETRIC DUST (Mid-ground)

@@ -15,7 +15,7 @@ interface FeatureEditorProps {
     onChange: (features: Feature[]) => void;
 }
 
-export default function FeatureEditor({ features = [], onChange }: FeatureEditorProps) {
+export default function FeatureEditor({ features = [], onChange, brandColor = '#2A9DFF' }: FeatureEditorProps & { brandColor?: string }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
 
@@ -74,7 +74,10 @@ export default function FeatureEditor({ features = [], onChange }: FeatureEditor
                     const Icon = Icons[feature.icon] || Icons.Star;
                     return (
                         <div key={index} className="flex items-start gap-3 p-3 bg-white/5 border border-white/10 rounded-lg group hover:bg-white/[0.07] transition-colors relative">
-                            <div className="w-10 h-10 rounded bg-tech-blue/10 flex items-center justify-center shrink-0 text-tech-blue">
+                            <div
+                                className="w-10 h-10 rounded bg-white/5 flex items-center justify-center shrink-0"
+                                style={{ color: brandColor, backgroundColor: `${brandColor}15` }}
+                            >
                                 <Icon className="w-5 h-5" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -87,7 +90,8 @@ export default function FeatureEditor({ features = [], onChange }: FeatureEditor
                                 <button
                                     type="button"
                                     onClick={() => handleEdit(index)}
-                                    className="p-1.5 text-tech-blue hover:bg-tech-blue/20 rounded"
+                                    className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                                    style={{ color: brandColor }}
                                     title="Edit"
                                 >
                                     <Icons.Edit2 className="w-3 h-3" />
@@ -128,7 +132,10 @@ export default function FeatureEditor({ features = [], onChange }: FeatureEditor
                         className="overflow-hidden"
                     >
                         <div className="p-4 bg-black/40 border border-white/10 rounded-lg space-y-4 pt-6 mt-4 relative">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tech-blue to-transparent opacity-50" />
+                            <div
+                                className="absolute top-0 left-0 w-full h-1 opacity-50"
+                                style={{ background: `linear-gradient(90deg, ${brandColor}, transparent)` }}
+                            />
 
                             <div className="flex justify-between items-center mb-2">
                                 <h4 className="text-sm font-bold text-white">
@@ -145,7 +152,10 @@ export default function FeatureEditor({ features = [], onChange }: FeatureEditor
                                             type="text"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:border-tech-blue focus:outline-none"
+                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none transition-colors"
+                                            style={{ caretColor: brandColor }}
+                                            onFocus={(e) => e.target.style.borderColor = brandColor}
+                                            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                             placeholder="e.g. Real-time Sync"
                                         />
                                     </div>
@@ -155,7 +165,10 @@ export default function FeatureEditor({ features = [], onChange }: FeatureEditor
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
                                             rows={3}
-                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:border-tech-blue focus:outline-none resize-none"
+                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none resize-none transition-colors"
+                                            style={{ caretColor: brandColor }}
+                                            onFocus={(e) => e.target.style.borderColor = brandColor}
+                                            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                                             placeholder="Briefly describe this feature..."
                                         />
                                     </div>
@@ -172,7 +185,8 @@ export default function FeatureEditor({ features = [], onChange }: FeatureEditor
                                     type="button"
                                     onClick={handleSave}
                                     disabled={!name.trim() || !description.trim()}
-                                    className="px-6 py-2 bg-tech-blue text-white rounded hover:bg-tech-blue/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                    className="px-6 py-2 text-white rounded hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-sm"
+                                    style={{ backgroundColor: brandColor }}
                                 >
                                     {editIndex !== null ? 'Update Feature' : 'Add Feature'}
                                 </button>

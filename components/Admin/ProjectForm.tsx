@@ -313,6 +313,7 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                                 features={formData.metadata?.features || []}
                                 // @ts-ignore
                                 onChange={(features) => updateNestedField('metadata', 'features', features)}
+                                brandColor={formData.brandingColors?.primary}
                             />
                         </section>
 
@@ -321,6 +322,7 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                             <PricingEditor
                                 plans={formData.pricingPlans || []}
                                 onChange={(plans) => setFormData(prev => ({ ...prev, pricingPlans: plans }))}
+                                brandColor={formData.brandingColors?.primary}
                             />
                         </section>
 
