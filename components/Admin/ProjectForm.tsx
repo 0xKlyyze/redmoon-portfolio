@@ -6,18 +6,13 @@ import { AsteroidData } from '@/types';
 import { useAdmin } from './AdminProvider';
 import ImageUpload from './ImageUpload';
 import ColorPicker from './ColorPicker';
-import * as Icons from 'lucide-react';
+import FeatureEditor from './FeatureEditor';
+import PricingEditor from './PricingEditor';
 
 interface ProjectFormProps {
     project: AsteroidData | null;
     onClose: () => void;
 }
-
-const AVAILABLE_ICONS = [
-    'Activity', 'Bell', 'Box', 'Code', 'Cpu', 'Database', 'Globe', 'Layers',
-    'Layout', 'Lock', 'MessageSquare', 'Rocket', 'Server', 'Shield', 'Smartphone',
-    'Star', 'Terminal', 'UserCheck', 'Zap', 'Eye', 'Sparkles', 'Download', 'Cloud'
-];
 
 const DEFAULT_PROJECT: Partial<AsteroidData> = {
     name: '',
@@ -45,6 +40,7 @@ const DEFAULT_PROJECT: Partial<AsteroidData> = {
         features: [],
         links: {},
     },
+    pricingPlans: [],
     pricing: {
         currency: 'USD',
     },
@@ -59,11 +55,6 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
         project ? { ...project } : { ...DEFAULT_PROJECT }
     );
     const [techStackInput, setTechStackInput] = useState('');
-
-    // Feature Input State
-    const [featureName, setFeatureName] = useState('');
-    const [featureDesc, setFeatureDesc] = useState('');
-    const [featureIcon, setFeatureIcon] = useState('Star');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -137,83 +128,10 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
         updateNestedField('metadata', 'techStack', currentStack.filter((_, i) => i !== index));
     }, [formData.metadata?.techStack, updateNestedField]);
 
-    // Enhanced Feature Handlers
-    const addFeature = useCallback(() => {
-        if (!featureName.trim() || !featureDesc.trim()) return;
-
-        const newFeature = {
-            name: featureName.trim(),
-            description: featureDesc.trim(),
-            icon: featureIcon
-        };
-
-        const currentFeatures = formData.metadata?.features || [];
-        // @ts-ignore - Assuming types are updated
-        updateNestedField('metadata', 'features', [...currentFeatures, newFeature]);
-
-        // Reset inputs
-        setFeatureName('');
-        setFeatureDesc('');
-        setFeatureIcon('Star');
-    }, [featureName, featureDesc, featureIcon, formData.metadata?.features, updateNestedField]);
-
-    const removeFeature = useCallback((index: number) => {
-        const currentFeatures = formData.metadata?.features || [];
-        updateNestedField('metadata', 'features', currentFeatures.filter((_, i) => i !== index));
-    }, [formData.metadata?.features, updateNestedField]);
-
     const updateLink = useCallback((key: keyof NonNullable<AsteroidData['metadata']['links']>, value: string) => {
         const currentLinks = formData.metadata?.links || {};
         updateNestedField('metadata', 'links', { ...currentLinks, [key]: value || undefined });
     }, [formData.metadata?.links, updateNestedField]);
-
-    // Pricing Plans Helpers
-    const addPricingPlan = useCallback(() => {
-        const currentPlans = formData.pricingPlans || [];
-        setFormData(prev => ({
-            ...prev,
-            pricingPlans: [...currentPlans, {
-                name: 'New Plan',
-                price: 0,
-                billingCycle: 'monthly',
-                currency: 'USD',
-                description: '',
-                features: [],
-                highlighted: false
-            }]
-        }));
-    }, [formData.pricingPlans]);
-
-    const removePricingPlan = useCallback((index: number) => {
-        const currentPlans = formData.pricingPlans || [];
-        setFormData(prev => ({
-            ...prev,
-            pricingPlans: currentPlans.filter((_, i) => i !== index)
-        }));
-    }, [formData.pricingPlans]);
-
-    const updatePricingPlan = useCallback((index: number, field: string, value: any) => {
-        const currentPlans = formData.pricingPlans || [];
-        const updatedPlans = [...currentPlans];
-        updatedPlans[index] = { ...updatedPlans[index], [field]: value };
-        setFormData(prev => ({ ...prev, pricingPlans: updatedPlans }));
-    }, [formData.pricingPlans]);
-
-    // Screenshot Helpers
-    const addScreenshot = useCallback((url: string) => {
-        if (!url) return;
-        setFormData(prev => ({
-            ...prev,
-            screenshots: [...(prev.screenshots || []), url]
-        }));
-    }, []);
-
-    const removeScreenshot = useCallback((index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            screenshots: (prev.screenshots || []).filter((_, i) => i !== index)
-        }));
-    }, []);
 
     return (
         <motion.div
@@ -388,143 +306,22 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
                             </div>
                         </section>
 
-                        {/* Modular Features */}
+                        {/* Modular Features Editor (New) */}
                         <section>
-                            <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider mb-4">
-                                Key Features
-                            </h3>
-
-                            {/* Add Feature Form */}
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-lg mb-4 space-y-3">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <input
-                                        type="text"
-                                        value={featureName}
-                                        onChange={(e) => setFeatureName(e.target.value)}
-                                        placeholder="Feature Name"
-                                        className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                    />
-                                    <select
-                                        value={featureIcon}
-                                        onChange={(e) => setFeatureIcon(e.target.value)}
-                                        className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                    >
-                                        {AVAILABLE_ICONS.map(icon => (
-                                            <option key={icon} value={icon}>{icon}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <input
-                                    type="text"
-                                    value={featureDesc}
-                                    onChange={(e) => setFeatureDesc(e.target.value)}
-                                    placeholder="Short description of the feature"
-                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={addFeature}
-                                    className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded text-sm transition-colors"
-                                >
-                                    Add Feature
-                                </button>
-                            </div>
-
-                            {/* Features List */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {formData.metadata?.features?.map((feature: any, index: number) => (
-                                    <div key={index} className="flex items-start gap-3 p-3 bg-white/5 border border-white/10 rounded relative group">
-                                        <button
-                                            type="button"
-                                            onClick={() => removeFeature(index)}
-                                            className="absolute top-2 right-2 text-orbital-grey hover:text-redmoon-crimson opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                                        </button>
-                                        <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
-                                            {/* @ts-ignore */}
-                                            {Icons[feature.icon] ? <Icons.Star className="w-4 h-4 text-white" /> : <span className="text-xs">?</span>}
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-bold text-white">{feature.name}</h4>
-                                            <p className="text-xs text-white/60 leading-tight mt-1">{feature.description}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <FeatureEditor
+                                // @ts-ignore
+                                features={formData.metadata?.features || []}
+                                // @ts-ignore
+                                onChange={(features) => updateNestedField('metadata', 'features', features)}
+                            />
                         </section>
 
-                        {/* Pricing Plans (New Layout) */}
+                        {/* Pricing Plans Editor (New) */}
                         <section>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-sm font-mono text-orbital-grey uppercase tracking-wider">
-                                    Pricing Plans
-                                </h3>
-                                <button
-                                    type="button"
-                                    onClick={addPricingPlan}
-                                    className="px-3 py-1 bg-neon-green/20 border border-neon-green text-neon-green text-xs rounded hover:bg-neon-green/30"
-                                >
-                                    + Add Plan
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                {formData.pricingPlans?.map((plan, index) => (
-                                    <div key={index} className="p-4 bg-white/5 border border-white/10 rounded-lg space-y-3 relative">
-                                        <button
-                                            type="button"
-                                            onClick={() => removePricingPlan(index)}
-                                            className="absolute top-2 right-2 text-orbital-grey hover:text-redmoon-crimson"
-                                        >
-                                            Remove
-                                        </button>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-[10px] text-orbital-grey mb-1">Plan Name</label>
-                                                <input
-                                                    type="text"
-                                                    value={plan.name}
-                                                    onChange={(e) => updatePricingPlan(index, 'name', e.target.value)}
-                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                                    placeholder="e.g. Starter"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] text-orbital-grey mb-1">Price</label>
-                                                <input
-                                                    type="number"
-                                                    value={plan.price}
-                                                    onChange={(e) => updatePricingPlan(index, 'price', parseFloat(e.target.value))}
-                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-[10px] text-orbital-grey mb-1">Description</label>
-                                                <input
-                                                    type="text"
-                                                    value={plan.description}
-                                                    onChange={(e) => updatePricingPlan(index, 'description', e.target.value)}
-                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] text-orbital-grey mb-1">Features (comma separated)</label>
-                                                <input
-                                                    type="text"
-                                                    value={plan.features.join(', ')}
-                                                    onChange={(e) => updatePricingPlan(index, 'features', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                                                    className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded text-white text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <PricingEditor
+                                plans={formData.pricingPlans || []}
+                                onChange={(plans) => setFormData(prev => ({ ...prev, pricingPlans: plans }))}
+                            />
                         </section>
 
                         {/* All Links including Socials */}
