@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { useAppStore } from "@/store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -49,17 +49,76 @@ const mobileVariants = {
     exit: { y: "100%", opacity: 0 }
 };
 
-// Desktop animation variants (slide in from right)
-const desktopVariants = {
-    hidden: { x: "100%", opacity: 0 },
-    visible: { x: 0, opacity: 1 },
-    exit: { x: "100%", opacity: 0 }
-};
+// Feature card component with smart truncation detection
+function FeatureCard({ feature, color }: { feature: any; color: string }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isTruncated, setIsTruncated] = useState(false);
+    const textRef = useRef<HTMLParagraphElement>(null);
+
+    // @ts-ignore
+    const IconComponent = Icons[feature.icon] || Icons.Star;
+
+    // Detect if text is actually truncated by comparing scrollHeight to clientHeight
+    useEffect(() => {
+        const checkTruncation = () => {
+            if (textRef.current) {
+                const element = textRef.current;
+                setIsTruncated(element.scrollHeight > element.clientHeight);
+            }
+        };
+
+        checkTruncation();
+        window.addEventListener('resize', checkTruncation);
+        return () => window.removeEventListener('resize', checkTruncation);
+    }, [feature.description]);
+
+    return (
+        <div
+            className="h-full p-3 md:p-4 rounded-xl md:rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all duration-300 group flex flex-col gap-2"
+            style={{
+                boxShadow: '0 4px 20px -5px rgba(0,0,0,0.2)'
+            }}
+        >
+            <div
+                className="w-7 h-7 md:w-9 md:h-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300"
+                style={{
+                    backgroundColor: `${color}15`,
+                    color: color
+                }}
+            >
+                <IconComponent className="w-3.5 h-3.5 md:w-4 md:h-4 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+            </div>
+            <div className="flex-1 flex flex-col">
+                <h5 className="text-white font-bold text-[11px] md:text-xs mb-0.5 line-clamp-1 group-hover:text-white/90">{feature.name}</h5>
+                <p
+                    ref={textRef}
+                    className={`text-white/50 text-[10px] md:text-[11px] leading-relaxed flex-1 ${!isExpanded ? 'line-clamp-3' : ''}`}
+                >
+                    {feature.description}
+                </p>
+                {isTruncated && (
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="mt-1 text-[9px] text-tech-blue hover:text-tech-blue/80 transition-colors flex items-center gap-0.5 self-start"
+                    >
+                        {isExpanded ? 'Less' : 'More'}
+                        {isExpanded ? <Icons.ChevronUp className="w-2.5 h-2.5" /> : <Icons.ChevronDown className="w-2.5 h-2.5" />}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
 
 export default function HUD() {
     const activeAsteroid = useAppStore((state) => state.activeAsteroid);
     const asteroids = useAppStore((state) => state.asteroids);
     const setActiveAsteroid = useAppStore((state) => state.setActiveAsteroid);
+
+    // State for expanded tagline
+    const [isTaglineExpanded, setIsTaglineExpanded] = useState(false);
+    const taglineRef = useRef<HTMLParagraphElement>(null);
+    const [isTaglineTruncated, setIsTaglineTruncated] = useState(false);
 
     // Embla Carousel hook
     const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', loop: true, dragFree: true }, [Autoplay({ delay: 5000, stopOnInteraction: false })]);
@@ -76,6 +135,20 @@ export default function HUD() {
 
     // Detect if we're on mobile (for animation variant selection)
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+    // Detect if tagline is truncated
+    useEffect(() => {
+        const checkTruncation = () => {
+            if (taglineRef.current) {
+                const element = taglineRef.current;
+                setIsTaglineTruncated(element.scrollHeight > element.clientHeight);
+            }
+        };
+
+        checkTruncation();
+        window.addEventListener('resize', checkTruncation);
+        return () => window.removeEventListener('resize', checkTruncation);
+    }, [data?.tagline]);
 
     return (
         <AnimatePresence>
@@ -171,9 +244,24 @@ export default function HUD() {
                                                 {data.status}
                                             </span>
                                         </div>
-                                        <p className="text-sm md:text-base text-white/70 font-light leading-relaxed line-clamp-2 md:line-clamp-none">
-                                            {data.tagline}
-                                        </p>
+                                        {/* Tagline with smart truncation */}
+                                        <div>
+                                            <p
+                                                ref={taglineRef}
+                                                className={`text-sm md:text-base text-white/70 font-light leading-relaxed ${!isTaglineExpanded ? 'line-clamp-2' : ''}`}
+                                            >
+                                                {data.tagline}
+                                            </p>
+                                            {isTaglineTruncated && (
+                                                <button
+                                                    onClick={() => setIsTaglineExpanded(!isTaglineExpanded)}
+                                                    className="mt-1 text-[10px] md:text-xs text-tech-blue hover:text-tech-blue/80 transition-colors flex items-center gap-0.5"
+                                                >
+                                                    {isTaglineExpanded ? 'Less' : 'More'}
+                                                    {isTaglineExpanded ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -189,7 +277,7 @@ export default function HUD() {
 
                         {/* Scrollable Content */}
                         <motion.div
-                            className="flex-1 overflow-y-auto custom-scrollbar hide-scrollbar-mobile p-4 md:p-6 lg:p-8 space-y-6 md:space-y-10 relative z-10"
+                            className="flex-1 overflow-y-auto custom-scrollbar hide-scrollbar-mobile p-4 md:p-6 lg:p-8 space-y-5 md:space-y-8 relative z-10"
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
@@ -229,8 +317,8 @@ export default function HUD() {
                                 </motion.a>
                             )}
 
-                            {/* Description & Tech */}
-                            <motion.div variants={itemVariants} className="space-y-3 md:space-y-4">
+                            {/* Description & Tech - Full description, no truncation */}
+                            <motion.div variants={itemVariants} className="space-y-2 md:space-y-3">
                                 <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
                                     <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                     About Project
@@ -239,11 +327,11 @@ export default function HUD() {
                                     {data.metadata.description}
                                 </p>
 
-                                <div className="flex flex-wrap gap-1.5 md:gap-2 pt-2">
+                                <div className="flex flex-wrap gap-1.5 md:gap-2 pt-1">
                                     {data.metadata.techStack.map((tech) => (
                                         <span
                                             key={tech}
-                                            className="px-2 md:px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] md:text-[11px] text-white/60 font-mono hover:bg-white/10 hover:text-white transition-colors"
+                                            className="px-2 md:px-3 py-0.5 md:py-1 bg-white/5 border border-white/10 rounded-full text-[10px] md:text-[11px] text-white/60 font-mono hover:bg-white/10 hover:text-white transition-colors"
                                         >
                                             {tech}
                                         </span>
@@ -253,8 +341,8 @@ export default function HUD() {
 
                             {/* Horizontal Feature Carousel */}
                             {data.metadata.features && data.metadata.features.length > 0 && (
-                                <motion.div variants={itemVariants} className="space-y-3 md:space-y-4">
-                                    <div className="flex items-center justify-between mb-3 md:mb-4">
+                                <motion.div variants={itemVariants} className="space-y-2 md:space-y-3">
+                                    <div className="flex items-center justify-between">
                                         <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
                                             <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                             Key Features
@@ -275,36 +363,13 @@ export default function HUD() {
                                         </div>
                                     </div>
 
-                                    <div className="overflow-hidden -mx-2 px-2 pb-4" ref={emblaRef}>
-                                        <div className="flex gap-3 md:gap-4">
-                                            {data.metadata.features.map((feature: any, i: number) => {
-                                                // @ts-ignore
-                                                const IconComponent = Icons[feature.icon] || Icons.Star;
-                                                return (
-                                                    <div key={i} className="flex-[0_0_200px] md:flex-[0_0_240px] min-w-0">
-                                                        <div
-                                                            className="h-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all duration-300 group flex flex-col gap-2 md:gap-3"
-                                                            style={{
-                                                                boxShadow: '0 4px 20px -5px rgba(0,0,0,0.2)'
-                                                            }}
-                                                        >
-                                                            <div
-                                                                className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
-                                                                style={{
-                                                                    backgroundColor: `${data.visualAsset.color}15`,
-                                                                    color: data.visualAsset.color
-                                                                }}
-                                                            >
-                                                                <IconComponent className="w-4 h-4 md:w-5 md:h-5 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
-                                                            </div>
-                                                            <div>
-                                                                <h5 className="text-white font-bold text-xs md:text-sm mb-1 line-clamp-1 group-hover:text-white/90">{feature.name}</h5>
-                                                                <p className="text-white/50 text-[10px] md:text-xs leading-relaxed line-clamp-3">{feature.description}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                    <div className="overflow-hidden -mx-2 px-2 pb-2" ref={emblaRef}>
+                                        <div className="flex gap-2.5 md:gap-3">
+                                            {data.metadata.features.map((feature: any, i: number) => (
+                                                <div key={i} className="flex-[0_0_180px] md:flex-[0_0_220px] min-w-0">
+                                                    <FeatureCard feature={feature} color={data.visualAsset.color} />
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </motion.div>
@@ -312,7 +377,7 @@ export default function HUD() {
 
                             {/* Pricing Plans */}
                             {data.pricingPlans && data.pricingPlans.length > 0 && (
-                                <motion.div variants={itemVariants} className="space-y-3 md:space-y-4">
+                                <motion.div variants={itemVariants} className="space-y-2 md:space-y-3">
                                     <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
                                         <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                         Access Plans
@@ -320,66 +385,15 @@ export default function HUD() {
 
                                     <div className="space-y-2 md:space-y-3">
                                         {data.pricingPlans.map((plan, i) => (
-                                            <div
-                                                key={i}
-                                                className={`relative p-4 md:p-5 rounded-xl border transition-all duration-300 group ${plan.highlighted
-                                                    ? 'bg-gradient-to-r from-white/[0.04] to-transparent'
-                                                    : 'bg-white/[0.02]'
-                                                    }`}
-                                                style={{
-                                                    borderColor: plan.highlighted ? `${data.visualAsset.color}40` : 'rgba(255,255,255,0.05)',
-                                                    boxShadow: plan.highlighted ? `0 0 30px -10px ${data.visualAsset.color}20` : 'none'
-                                                }}
-                                            >
-                                                {plan.highlighted && (
-                                                    <div
-                                                        className="absolute -top-2.5 left-4 px-2.5 py-0.5 text-[8px] md:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-lg"
-                                                        style={{
-                                                            backgroundColor: data.visualAsset.color,
-                                                            color: '#000'
-                                                        }}
-                                                    >
-                                                        Most Popular
-                                                    </div>
-                                                )}
-
-                                                <div className="flex items-start justify-between gap-3 md:gap-4">
-                                                    <div className="min-w-0 flex-1">
-                                                        <h5 className="text-sm font-bold text-white mb-1">{plan.name}</h5>
-                                                        <p className="text-[10px] md:text-xs text-white/40 line-clamp-2">{plan.description}</p>
-                                                    </div>
-                                                    <div className="text-right shrink-0">
-                                                        <div className="flex items-baseline justify-end gap-1">
-                                                            <span className="text-xl md:text-2xl font-bold text-white font-mono tracking-tight" style={{ textShadow: `0 0 20px ${data.visualAsset.color}40` }}>
-                                                                {plan.price === 0 ? 'Free' : formatPrice(plan.price, plan.currency)}
-                                                            </span>
-                                                        </div>
-                                                        <span className="text-[9px] md:text-[10px] text-white/30 font-mono uppercase tracking-wider">{getBillingLabel(plan.billingCycle)}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-wrap gap-x-3 md:gap-x-4 gap-y-1.5 md:gap-y-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/[0.04]">
-                                                    {plan.features.slice(0, 3).map((feature, j) => (
-                                                        <div key={j} className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-[11px] text-white/60">
-                                                            <div
-                                                                className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full flex items-center justify-center shrink-0"
-                                                                style={{ backgroundColor: `${data.visualAsset.color}20` }}
-                                                            >
-                                                                <Icons.Check className="w-2 h-2 md:w-2.5 md:h-2.5" style={{ color: data.visualAsset.color }} />
-                                                            </div>
-                                                            <span>{feature}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                            <PricingCard key={i} plan={plan} color={data.visualAsset.color} />
                                         ))}
                                     </div>
                                 </motion.div>
                             )}
 
                             {/* Social Links */}
-                            <motion.div variants={itemVariants} className="pt-2 pb-4 md:pb-6">
-                                <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2 mb-3 md:mb-4">
+                            <motion.div variants={itemVariants} className="pt-1 pb-4 md:pb-6">
+                                <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                                     <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                     Connect
                                 </h4>
@@ -444,5 +458,92 @@ export default function HUD() {
                 </motion.div>
             )}
         </AnimatePresence>
+    );
+}
+
+// Pricing Card Component with smart truncation
+function PricingCard({ plan, color }: { plan: any; color: string }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isTruncated, setIsTruncated] = useState(false);
+    const descRef = useRef<HTMLParagraphElement>(null);
+
+    useEffect(() => {
+        const checkTruncation = () => {
+            if (descRef.current) {
+                setIsTruncated(descRef.current.scrollHeight > descRef.current.clientHeight);
+            }
+        };
+
+        checkTruncation();
+        window.addEventListener('resize', checkTruncation);
+        return () => window.removeEventListener('resize', checkTruncation);
+    }, [plan.description]);
+
+    return (
+        <div
+            className={`relative p-4 md:p-5 rounded-xl border transition-all duration-300 group ${plan.highlighted
+                ? 'bg-gradient-to-r from-white/[0.04] to-transparent'
+                : 'bg-white/[0.02]'
+                }`}
+            style={{
+                borderColor: plan.highlighted ? `${color}40` : 'rgba(255,255,255,0.05)',
+                boxShadow: plan.highlighted ? `0 0 30px -10px ${color}20` : 'none'
+            }}
+        >
+            {plan.highlighted && (
+                <div
+                    className="absolute -top-2.5 left-4 px-2.5 py-0.5 text-[8px] md:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-lg"
+                    style={{
+                        backgroundColor: color,
+                        color: '#000'
+                    }}
+                >
+                    Most Popular
+                </div>
+            )}
+
+            <div className="flex items-start justify-between gap-3 md:gap-4">
+                <div className="min-w-0 flex-1">
+                    <h5 className="text-sm font-bold text-white mb-0.5">{plan.name}</h5>
+                    <p
+                        ref={descRef}
+                        className={`text-[10px] md:text-xs text-white/40 ${!isExpanded ? 'line-clamp-1' : ''}`}
+                    >
+                        {plan.description}
+                    </p>
+                    {isTruncated && (
+                        <button
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="mt-0.5 text-[9px] text-tech-blue hover:text-tech-blue/80 transition-colors flex items-center gap-0.5"
+                        >
+                            {isExpanded ? 'Less' : 'More'}
+                            {isExpanded ? <Icons.ChevronUp className="w-2.5 h-2.5" /> : <Icons.ChevronDown className="w-2.5 h-2.5" />}
+                        </button>
+                    )}
+                </div>
+                <div className="text-right shrink-0">
+                    <div className="flex items-baseline justify-end gap-1">
+                        <span className="text-xl md:text-2xl font-bold text-white font-mono tracking-tight" style={{ textShadow: `0 0 20px ${color}40` }}>
+                            {plan.price === 0 ? 'Free' : formatPrice(plan.price, plan.currency)}
+                        </span>
+                    </div>
+                    <span className="text-[9px] md:text-[10px] text-white/30 font-mono uppercase tracking-wider">{getBillingLabel(plan.billingCycle)}</span>
+                </div>
+            </div>
+
+            <div className="flex flex-wrap gap-x-3 md:gap-x-4 gap-y-1.5 md:gap-y-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/[0.04]">
+                {plan.features.slice(0, 3).map((feature: string, j: number) => (
+                    <div key={j} className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-[11px] text-white/60">
+                        <div
+                            className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: `${color}20` }}
+                        >
+                            <Icons.Check className="w-2 h-2 md:w-2.5 md:h-2.5" style={{ color: color }} />
+                        </div>
+                        <span>{feature}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

@@ -1,11 +1,30 @@
-import { useRef, useMemo } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Stars, Sparkles, Environment } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAppStore } from "@/store/useAppStore";
 import { damp } from "maath/easing";
 
-function WarpEffect() {
+// Hook to detect mobile devices (reusable)
+function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const isSmallScreen = window.innerWidth < 768;
+            setIsMobile(isTouchDevice || isSmallScreen);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    return isMobile;
+}
+
+function WarpEffect({ isMobile }: { isMobile: boolean }) {
     const lastInteractionTime = useAppStore((state) => state.lastInteractionTime);
     const starsRef = useRef<any>(null);
 
@@ -19,21 +38,23 @@ function WarpEffect() {
         const isPulsing = timeSincePulse < 2000;
         const isFlashing = timeSincePulse < 500; // Quick flash
 
-        // Target intensity: 1 if pulsing, 0 if not
-        const targetIntensity = isPulsing ? 1 : 0;
-        const targetFlash = isFlashing ? 1 - (timeSincePulse / 500) : 0;
+        // Target intensity: 1 if pulsing, 0 if not (reduced on mobile)
+        const targetIntensity = isPulsing ? (isMobile ? 0.5 : 1) : 0;
+        const targetFlash = isFlashing ? (1 - (timeSincePulse / 500)) * (isMobile ? 0.5 : 1) : 0;
 
         // Smoothly damp the intensities
         damp(warpIntensity, 'current', targetIntensity, 0.25, delta);
         damp(colorFlashIntensity, 'current', targetFlash, 0.1, delta);
 
         if (starsRef.current) {
-            // Accelerate stars based on intensity
-            const currentSpeed = THREE.MathUtils.lerp(1, 30, warpIntensity.current);
+            // Accelerate stars based on intensity (reduced on mobile)
+            const maxSpeed = isMobile ? 15 : 30;
+            const currentSpeed = THREE.MathUtils.lerp(1, maxSpeed, warpIntensity.current);
             starsRef.current.speed = currentSpeed;
 
             // Stretch stars into lines during warp
-            const currentFactor = THREE.MathUtils.lerp(4, 25, warpIntensity.current);
+            const maxFactor = isMobile ? 15 : 25;
+            const currentFactor = THREE.MathUtils.lerp(4, maxFactor, warpIntensity.current);
             starsRef.current.factor = currentFactor;
         }
 
@@ -50,12 +71,15 @@ function WarpEffect() {
         }
     });
 
+    // Reduced star count on mobile
+    const starCount = isMobile ? 2000 : 5000;
+
     return (
         <Stars
             ref={starsRef}
             radius={100}
             depth={50}
-            count={5000}
+            count={starCount}
             factor={4}
             saturation={0}
             fade
@@ -66,6 +90,12 @@ function WarpEffect() {
 
 
 export default function SpaceEnvironment() {
+    const isMobile = useIsMobile();
+
+    // Reduced particle counts for mobile
+    const dustCount = isMobile ? 200 : 500;
+    const debrisCount = isMobile ? 50 : 100;
+
     return (
         <>
             {/* 
@@ -82,12 +112,12 @@ export default function SpaceEnvironment() {
         preset="city": Provides high-contrast, cool/warm light data.
         environmentIntensity: Low, so it doesn't wash out our dramatic lighting.
       */}
-            <Environment preset="city" environmentIntensity={0.2} />
+            <Environment preset="city" environmentIntensity={isMobile ? 0.15 : 0.2} />
 
             {/* 
         3. BACKGROUND STARS (Reacts to Warp)
       */}
-            <WarpEffect />
+            <WarpEffect isMobile={isMobile} />
 
             {/* 
         4. VOLUMETRIC DUST (Mid-ground)
@@ -96,9 +126,9 @@ export default function SpaceEnvironment() {
         creating a 3D "Volume" effect.
       */}
             <Sparkles
-                count={500}
+                count={dustCount}
                 scale={[20, 20, 20]} // Spread over a 20 unit box
-                size={2}
+                size={isMobile ? 1.5 : 2}
                 speed={0.4}
                 opacity={0.5}
                 color="#ffffff"
@@ -109,9 +139,9 @@ export default function SpaceEnvironment() {
         Subtle red particles near the center to suggest activity/energy.
       */}
             <Sparkles
-                count={100}
+                count={debrisCount}
                 scale={[8, 8, 8]}
-                size={4}
+                size={isMobile ? 3 : 4}
                 speed={0.2}
                 opacity={0.4}
                 color="#ff2a2a"
@@ -124,7 +154,7 @@ export default function SpaceEnvironment() {
             {/* Key Light (The "Sun") - Sharp shadows, high intensity */}
             <directionalLight
                 position={[10, 10, 5]}
-                intensity={2}
+                intensity={isMobile ? 1.5 : 2}
                 color="#ffffff"
                 castShadow={false}
             />
@@ -132,7 +162,7 @@ export default function SpaceEnvironment() {
             {/* Fill Light (The "Nebula Glow") - Cool blue rim light */}
             <directionalLight
                 position={[-10, -10, -5]}
-                intensity={1}
+                intensity={isMobile ? 0.8 : 1}
                 color="#2A9DFF"
             />
 
