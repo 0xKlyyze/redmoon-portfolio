@@ -42,6 +42,20 @@ const itemVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
 };
 
+// Mobile animation variants (slide up from bottom)
+const mobileVariants = {
+    hidden: { y: "100%", opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+    exit: { y: "100%", opacity: 0 }
+};
+
+// Desktop animation variants (slide in from right)
+const desktopVariants = {
+    hidden: { x: "100%", opacity: 0 },
+    visible: { x: 0, opacity: 1 },
+    exit: { x: "100%", opacity: 0 }
+};
+
 export default function HUD() {
     const activeAsteroid = useAppStore((state) => state.activeAsteroid);
     const asteroids = useAppStore((state) => state.asteroids);
@@ -60,6 +74,9 @@ export default function HUD() {
 
     const data = asteroids.find((a) => a.id === activeAsteroid);
 
+    // Detect if we're on mobile (for animation variant selection)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     return (
         <AnimatePresence>
             {data && (
@@ -67,20 +84,35 @@ export default function HUD() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed right-0 top-0 h-full w-full md:w-[480px] lg:w-[580px] z-50 flex items-center justify-end pointer-events-none"
+                    className="fixed inset-0 md:inset-auto md:right-0 md:top-0 md:h-full md:w-[480px] lg:w-[580px] z-50 flex items-end md:items-center justify-center md:justify-end pointer-events-none"
                 >
+                    {/* Mobile Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm md:hidden pointer-events-auto"
+                        onClick={() => setActiveAsteroid(null)}
+                    />
+
                     {/* Main Panel Container */}
                     <motion.div
-                        initial={{ x: "100%", opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: "100%", opacity: 0 }}
+                        initial={isMobile ? "hidden" : { x: "100%", opacity: 0 }}
+                        animate={isMobile ? "visible" : { x: 0, opacity: 1 }}
+                        exit={isMobile ? "exit" : { x: "100%", opacity: 0 }}
+                        variants={isMobile ? mobileVariants : undefined}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="pointer-events-auto w-full h-full glass-panel-premium md:rounded-l-3xl overflow-hidden flex flex-col relative"
+                        className="pointer-events-auto w-full md:w-full h-[92vh] md:h-full max-h-full glass-panel-premium rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none overflow-hidden flex flex-col relative"
                         style={{
                             borderColor: `${data.visualAsset.color}20`,
-                            boxShadow: `-20px 0 100px -20px ${data.visualAsset.color}15`
+                            boxShadow: `0 -20px 100px -20px ${data.visualAsset.color}15, -20px 0 100px -20px ${data.visualAsset.color}15`
                         }}
                     >
+                        {/* Mobile Drag Indicator */}
+                        <div className="md:hidden flex justify-center pt-3 pb-1">
+                            <div className="drag-indicator" />
+                        </div>
+
                         {/* Dynamic Background Gradient */}
                         <div
                             className="absolute inset-0 pointer-events-none z-0 opacity-20"
@@ -89,24 +121,24 @@ export default function HUD() {
                             }}
                         />
 
-                        {/* Top Gradient Border */}
+                        {/* Top Gradient Border - Hidden on mobile (we have drag indicator instead) */}
                         <div
-                            className="h-1 w-full relative z-10"
+                            className="hidden md:block h-1 w-full relative z-10"
                             style={{ background: `linear-gradient(90deg, ${data.visualAsset.color}, transparent)` }}
                         />
 
                         {/* Header Section */}
                         <motion.div
-                            className="relative p-6 lg:p-8 border-b border-white/[0.06] z-10"
+                            className="relative p-4 md:p-6 lg:p-8 border-b border-white/[0.06] z-10"
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
                         >
-                            <div className="flex justify-between items-start gap-4">
-                                <div className="flex items-center gap-4 lg:gap-5">
+                            <div className="flex justify-between items-start gap-3 md:gap-4">
+                                <div className="flex items-center gap-3 md:gap-4 lg:gap-5 min-w-0 flex-1">
                                     {/* Logo with Glow */}
                                     <div
-                                        className="relative w-16 h-16 rounded-2xl flex items-center justify-center p-3 overflow-hidden shadow-[0_0_30px_-5px_rgba(0,0,0,0.5)]"
+                                        className="relative w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center p-2 md:p-3 overflow-hidden shadow-[0_0_30px_-5px_rgba(0,0,0,0.5)] shrink-0"
                                         style={{
                                             background: `linear-gradient(135deg, ${data.visualAsset.color}20, ${data.visualAsset.color}05)`,
                                             border: `1px solid ${data.visualAsset.color}40`
@@ -122,13 +154,13 @@ export default function HUD() {
                                     </div>
 
                                     {/* Title & Status */}
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <h1 className="font-orbitron text-3xl font-bold text-white tracking-wide drop-shadow-lg">
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2 md:gap-3 mb-1 flex-wrap">
+                                            <h1 className="font-orbitron text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-wide drop-shadow-lg truncate">
                                                 {data.name}
                                             </h1>
                                             <span
-                                                className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest border"
+                                                className="px-2 py-0.5 rounded text-[9px] md:text-[10px] uppercase font-bold tracking-widest border shrink-0"
                                                 style={{
                                                     borderColor: `${data.visualAsset.color}50`,
                                                     color: data.visualAsset.color,
@@ -139,25 +171,25 @@ export default function HUD() {
                                                 {data.status}
                                             </span>
                                         </div>
-                                        <p className="text-base text-white/70 font-light leading-relaxed">
+                                        <p className="text-sm md:text-base text-white/70 font-light leading-relaxed line-clamp-2 md:line-clamp-none">
                                             {data.tagline}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Close button */}
+                                {/* Close button - Larger on mobile for better touch target */}
                                 <button
                                     onClick={() => setActiveAsteroid(null)}
-                                    className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all duration-200 border border-transparent hover:border-white/10"
+                                    className="p-2 md:p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all duration-200 border border-transparent hover:border-white/10 touch-target shrink-0"
                                 >
-                                    <Icons.X className="w-5 h-5" />
+                                    <Icons.X className="w-5 h-5 md:w-5 md:h-5" />
                                 </button>
                             </div>
                         </motion.div>
 
                         {/* Scrollable Content */}
                         <motion.div
-                            className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 space-y-10 relative z-10"
+                            className="flex-1 overflow-y-auto custom-scrollbar hide-scrollbar-mobile p-4 md:p-6 lg:p-8 space-y-6 md:space-y-10 relative z-10"
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
@@ -169,7 +201,7 @@ export default function HUD() {
                                     href={data.metadata.links.forgeDashboardUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="group block relative rounded-2xl overflow-hidden hover-lift shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]"
+                                    className="group block relative rounded-xl md:rounded-2xl overflow-hidden hover-lift touch-active shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]"
                                     style={{
                                         border: `1px solid ${data.visualAsset.color}30`
                                     }}
@@ -180,38 +212,38 @@ export default function HUD() {
                                         style={{ background: `linear-gradient(45deg, ${data.visualAsset.color}, transparent)` }}
                                     />
 
-                                    <div className="relative z-10 p-5 flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-colors">
-                                                <Image src="/logos/forgelogo.svg" alt="Forge" width={28} height={28} />
+                                    <div className="relative z-10 p-4 md:p-5 flex items-center justify-between">
+                                        <div className="flex items-center gap-3 md:gap-4">
+                                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-colors">
+                                                <Image src="/logos/forgelogo.svg" alt="Forge" width={28} height={28} className="w-6 h-6 md:w-7 md:h-7" />
                                             </div>
                                             <div>
-                                                <h3 className="text-white font-bold font-orbitron text-lg group-hover:text-tech-blue transition-colors">Forge Dashboard</h3>
-                                                <p className="text-white/50 text-xs mt-0.5 font-mono">View Live Roadmap & Metrics</p>
+                                                <h3 className="text-white font-bold font-orbitron text-base md:text-lg group-hover:text-tech-blue transition-colors">Forge Dashboard</h3>
+                                                <p className="text-white/50 text-[10px] md:text-xs mt-0.5 font-mono">View Live Roadmap & Metrics</p>
                                             </div>
                                         </div>
-                                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-all border border-white/5 group-hover:border-white/20">
-                                            <Icons.ArrowRight className="w-5 h-5 text-white/70 group-hover:text-white" />
+                                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-all border border-white/5 group-hover:border-white/20">
+                                            <Icons.ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-white/70 group-hover:text-white" />
                                         </div>
                                     </div>
                                 </motion.a>
                             )}
 
                             {/* Description & Tech */}
-                            <motion.div variants={itemVariants} className="space-y-4">
-                                <h4 className="text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <span className="w-8 h-[1px] bg-white/10"></span>
+                            <motion.div variants={itemVariants} className="space-y-3 md:space-y-4">
+                                <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                     About Project
                                 </h4>
-                                <p className="text-sm lg:text-base text-white/70 leading-relaxed font-light">
+                                <p className="text-sm md:text-base text-white/70 leading-relaxed font-light">
                                     {data.metadata.description}
                                 </p>
 
-                                <div className="flex flex-wrap gap-2 pt-2">
+                                <div className="flex flex-wrap gap-1.5 md:gap-2 pt-2">
                                     {data.metadata.techStack.map((tech) => (
                                         <span
                                             key={tech}
-                                            className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] text-white/60 font-mono hover:bg-white/10 hover:text-white transition-colors"
+                                            className="px-2 md:px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] md:text-[11px] text-white/60 font-mono hover:bg-white/10 hover:text-white transition-colors"
                                         >
                                             {tech}
                                         </span>
@@ -221,22 +253,22 @@ export default function HUD() {
 
                             {/* Horizontal Feature Carousel */}
                             {data.metadata.features && data.metadata.features.length > 0 && (
-                                <motion.div variants={itemVariants} className="space-y-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
-                                            <span className="w-8 h-[1px] bg-white/10"></span>
+                                <motion.div variants={itemVariants} className="space-y-3 md:space-y-4">
+                                    <div className="flex items-center justify-between mb-3 md:mb-4">
+                                        <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                             Key Features
                                         </h4>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-1.5 md:gap-2">
                                             <button
                                                 onClick={scrollPrev}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all border border-transparent hover:border-white/10"
+                                                className="p-1.5 md:p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all border border-transparent hover:border-white/10 touch-target"
                                             >
                                                 <Icons.ChevronLeft className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={scrollNext}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all border border-transparent hover:border-white/10"
+                                                className="p-1.5 md:p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all border border-transparent hover:border-white/10 touch-target"
                                             >
                                                 <Icons.ChevronRight className="w-4 h-4" />
                                             </button>
@@ -244,30 +276,30 @@ export default function HUD() {
                                     </div>
 
                                     <div className="overflow-hidden -mx-2 px-2 pb-4" ref={emblaRef}>
-                                        <div className="flex gap-4">
+                                        <div className="flex gap-3 md:gap-4">
                                             {data.metadata.features.map((feature: any, i: number) => {
                                                 // @ts-ignore
                                                 const IconComponent = Icons[feature.icon] || Icons.Star;
                                                 return (
-                                                    <div key={i} className="flex-[0_0_240px] min-w-0">
+                                                    <div key={i} className="flex-[0_0_200px] md:flex-[0_0_240px] min-w-0">
                                                         <div
-                                                            className="h-full p-5 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all duration-300 group flex flex-col gap-3"
+                                                            className="h-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-all duration-300 group flex flex-col gap-2 md:gap-3"
                                                             style={{
                                                                 boxShadow: '0 4px 20px -5px rgba(0,0,0,0.2)'
                                                             }}
                                                         >
                                                             <div
-                                                                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
+                                                                className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
                                                                 style={{
                                                                     backgroundColor: `${data.visualAsset.color}15`,
                                                                     color: data.visualAsset.color
                                                                 }}
                                                             >
-                                                                <IconComponent className="w-5 h-5 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                                                                <IconComponent className="w-4 h-4 md:w-5 md:h-5 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                                                             </div>
                                                             <div>
-                                                                <h5 className="text-white font-bold text-sm mb-1 line-clamp-1 group-hover:text-white/90">{feature.name}</h5>
-                                                                <p className="text-white/50 text-xs leading-relaxed line-clamp-3">{feature.description}</p>
+                                                                <h5 className="text-white font-bold text-xs md:text-sm mb-1 line-clamp-1 group-hover:text-white/90">{feature.name}</h5>
+                                                                <p className="text-white/50 text-[10px] md:text-xs leading-relaxed line-clamp-3">{feature.description}</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -280,17 +312,17 @@ export default function HUD() {
 
                             {/* Pricing Plans */}
                             {data.pricingPlans && data.pricingPlans.length > 0 && (
-                                <motion.div variants={itemVariants} className="space-y-4">
-                                    <h4 className="text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <span className="w-8 h-[1px] bg-white/10"></span>
+                                <motion.div variants={itemVariants} className="space-y-3 md:space-y-4">
+                                    <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                         Access Plans
                                     </h4>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-2 md:space-y-3">
                                         {data.pricingPlans.map((plan, i) => (
                                             <div
                                                 key={i}
-                                                className={`relative p-5 rounded-xl border transition-all duration-300 group ${plan.highlighted
+                                                className={`relative p-4 md:p-5 rounded-xl border transition-all duration-300 group ${plan.highlighted
                                                     ? 'bg-gradient-to-r from-white/[0.04] to-transparent'
                                                     : 'bg-white/[0.02]'
                                                     }`}
@@ -301,7 +333,7 @@ export default function HUD() {
                                             >
                                                 {plan.highlighted && (
                                                     <div
-                                                        className="absolute -top-2.5 left-4 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full shadow-lg"
+                                                        className="absolute -top-2.5 left-4 px-2.5 py-0.5 text-[8px] md:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-lg"
                                                         style={{
                                                             backgroundColor: data.visualAsset.color,
                                                             color: '#000'
@@ -311,29 +343,29 @@ export default function HUD() {
                                                     </div>
                                                 )}
 
-                                                <div className="flex items-start justify-between gap-4">
-                                                    <div>
+                                                <div className="flex items-start justify-between gap-3 md:gap-4">
+                                                    <div className="min-w-0 flex-1">
                                                         <h5 className="text-sm font-bold text-white mb-1">{plan.name}</h5>
-                                                        <p className="text-xs text-white/40">{plan.description}</p>
+                                                        <p className="text-[10px] md:text-xs text-white/40 line-clamp-2">{plan.description}</p>
                                                     </div>
                                                     <div className="text-right shrink-0">
                                                         <div className="flex items-baseline justify-end gap-1">
-                                                            <span className="text-2xl font-bold text-white font-mono tracking-tight" style={{ textShadow: `0 0 20px ${data.visualAsset.color}40` }}>
+                                                            <span className="text-xl md:text-2xl font-bold text-white font-mono tracking-tight" style={{ textShadow: `0 0 20px ${data.visualAsset.color}40` }}>
                                                                 {plan.price === 0 ? 'Free' : formatPrice(plan.price, plan.currency)}
                                                             </span>
                                                         </div>
-                                                        <span className="text-[10px] text-white/30 font-mono uppercase tracking-wider">{getBillingLabel(plan.billingCycle)}</span>
+                                                        <span className="text-[9px] md:text-[10px] text-white/30 font-mono uppercase tracking-wider">{getBillingLabel(plan.billingCycle)}</span>
                                                     </div>
                                                 </div>
 
-                                                <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 pt-4 border-t border-white/[0.04]">
+                                                <div className="flex flex-wrap gap-x-3 md:gap-x-4 gap-y-1.5 md:gap-y-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/[0.04]">
                                                     {plan.features.slice(0, 3).map((feature, j) => (
-                                                        <div key={j} className="flex items-center gap-2 text-[11px] text-white/60">
+                                                        <div key={j} className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-[11px] text-white/60">
                                                             <div
-                                                                className="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
+                                                                className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full flex items-center justify-center shrink-0"
                                                                 style={{ backgroundColor: `${data.visualAsset.color}20` }}
                                                             >
-                                                                <Icons.Check className="w-2.5 h-2.5" style={{ color: data.visualAsset.color }} />
+                                                                <Icons.Check className="w-2 h-2 md:w-2.5 md:h-2.5" style={{ color: data.visualAsset.color }} />
                                                             </div>
                                                             <span>{feature}</span>
                                                         </div>
@@ -346,34 +378,34 @@ export default function HUD() {
                             )}
 
                             {/* Social Links */}
-                            <motion.div variants={itemVariants} className="pt-2 pb-6">
-                                <h4 className="text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2 mb-4">
-                                    <span className="w-8 h-[1px] bg-white/10"></span>
+                            <motion.div variants={itemVariants} className="pt-2 pb-4 md:pb-6">
+                                <h4 className="text-[10px] md:text-[11px] font-mono text-white/30 uppercase tracking-[0.2em] flex items-center gap-2 mb-3 md:mb-4">
+                                    <span className="w-6 md:w-8 h-[1px] bg-white/10"></span>
                                     Connect
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
                                     {data.metadata.links.twitter && (
                                         <a href={data.metadata.links.twitter} target="_blank" rel="noopener noreferrer"
-                                            className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-[#1DA1F2]/10 hover:border-[#1DA1F2]/40 hover:text-[#1DA1F2] transition-all text-white/40 group">
-                                            <Icons.Twitter className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            className="p-2.5 md:p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-[#1DA1F2]/10 hover:border-[#1DA1F2]/40 hover:text-[#1DA1F2] transition-all text-white/40 group touch-target touch-active">
+                                            <Icons.Twitter className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
                                         </a>
                                     )}
                                     {data.metadata.links.githubUrl && (
                                         <a href={data.metadata.links.githubUrl} target="_blank" rel="noopener noreferrer"
-                                            className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/10 hover:border-white/30 hover:text-white transition-all text-white/40 group">
-                                            <Icons.Github className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            className="p-2.5 md:p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/10 hover:border-white/30 hover:text-white transition-all text-white/40 group touch-target touch-active">
+                                            <Icons.Github className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
                                         </a>
                                     )}
                                     {data.metadata.links.discord && (
                                         <a href={data.metadata.links.discord} target="_blank" rel="noopener noreferrer"
-                                            className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-[#5865F2]/10 hover:border-[#5865F2]/40 hover:text-[#5865F2] transition-all text-white/40 group">
-                                            <Icons.MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            className="p-2.5 md:p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-[#5865F2]/10 hover:border-[#5865F2]/40 hover:text-[#5865F2] transition-all text-white/40 group touch-target touch-active">
+                                            <Icons.MessageCircle className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
                                         </a>
                                     )}
                                     {data.metadata.links.docsUrl && (
                                         <a href={data.metadata.links.docsUrl} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/10 hover:border-white/30 text-white/40 hover:text-white transition-all text-xs font-medium group">
-                                            <Icons.BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                            className="flex items-center gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/10 hover:border-white/30 text-white/40 hover:text-white transition-all text-[10px] md:text-xs font-medium group touch-active">
+                                            <Icons.BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:scale-110 transition-transform" />
                                             <span>Documentation</span>
                                         </a>
                                     )}
@@ -384,7 +416,7 @@ export default function HUD() {
                         {/* Sticky Action Footer */}
                         {data.metadata.links.liveUrl && (
                             <motion.div
-                                className="p-6 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl relative z-20"
+                                className="p-4 md:p-6 border-t border-white/[0.06] bg-black/40 backdrop-blur-xl relative z-20 safe-area-bottom"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3, duration: 0.4 }}
@@ -393,7 +425,7 @@ export default function HUD() {
                                     href={data.metadata.links.liveUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg relative overflow-hidden group"
+                                    className="w-full py-3.5 md:py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg relative overflow-hidden group touch-active"
                                     style={{
                                         backgroundColor: data.visualAsset.color,
                                         color: '#000',
