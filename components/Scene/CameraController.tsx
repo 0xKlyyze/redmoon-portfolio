@@ -8,11 +8,31 @@ import { useState, useEffect, useRef } from "react";
 
 type AnimationPhase = 'idle' | 'rotating' | 'zooming' | 'focused' | 'zooming-out';
 
+// Hook to detect mobile devices
+function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const isSmallScreen = window.innerWidth < 768;
+            setIsMobile(isTouchDevice || isSmallScreen);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    return isMobile;
+}
+
 export default function CameraController() {
     const activeAsteroid = useAppStore((state) => state.activeAsteroid);
     const setIsTransitioning = useAppStore((state) => state.setIsTransitioning);
     const scene = useThree((state) => state.scene);
     const controls = useThree((state) => state.controls) as any;
+    const isMobile = useIsMobile();
 
     // Animation state
     const phaseRef = useRef<AnimationPhase>('idle');
@@ -21,17 +41,19 @@ export default function CameraController() {
     const rotationProgressRef = useRef(0);
     const prevAsteroidRef = useRef<string | null>(null);
 
-    // Fixed orbital parameters
-    const ORBIT_DISTANCE = 20; // Default orbit distance
-    const DEFAULT_HEIGHT = 5;  // Default height for idle state
-    const ROTATION_DURATION = 0.8; // Seconds for alignment
-    const ZOOM_DISTANCE = 5;   // Distance from asteroid when zoomed
+    // Fixed orbital parameters - ADJUSTED FOR MOBILE
+    const ORBIT_DISTANCE = isMobile ? 28 : 20;     // Further out on mobile to see more
+    const DEFAULT_HEIGHT = isMobile ? 8 : 5;       // Higher vantage point on mobile
+    const ROTATION_DURATION = 0.8;                 // Seconds for alignment
+    const ZOOM_DISTANCE = isMobile ? 7 : 5;        // Stay further from asteroid on mobile
 
     // Reusable vectors
     const [asteroidPos] = useState(() => new THREE.Vector3());
     const [cameraTarget] = useState(() => new THREE.Vector3()); // Where camera moves to
     const [lookTarget] = useState(() => new THREE.Vector3());   // Where camera looks at
-    const [defaultPosition] = useState(() => new THREE.Vector3(0, DEFAULT_HEIGHT, ORBIT_DISTANCE));
+
+    // Default position updates with mobile state
+    const defaultPosition = new THREE.Vector3(0, DEFAULT_HEIGHT, ORBIT_DISTANCE);
 
     // Handle asteroid selection changes
     useEffect(() => {
@@ -178,7 +200,7 @@ export default function CameraController() {
         // ============================================
         if (phase === 'zooming') {
             // Target: Position closer to asteroid along the same vector
-            // Dist = AsteroidDist + 5
+            // Dist = AsteroidDist + ZOOM_DISTANCE
             const finalDist = asteroidPos.length() + ZOOM_DISTANCE;
             cameraTarget.copy(targetAlignPosRef.current).normalize().multiplyScalar(finalDist);
 
@@ -190,7 +212,8 @@ export default function CameraController() {
                 // Calculate Offset (Shift target right => Asteroid moves left)
                 const direction = new THREE.Vector3().subVectors(asteroidPos, state.camera.position).normalize();
                 const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
-                const OFFSET_AMOUNT = 1.5; // Shift to make room for HUD
+                // More offset on mobile since HUD takes full screen
+                const OFFSET_AMOUNT = isMobile ? 0 : 1.5; // No offset on mobile (HUD covers asteroid anyway)
 
                 const targetWithOffset = asteroidPos.clone().add(right.multiplyScalar(OFFSET_AMOUNT));
 
@@ -220,7 +243,7 @@ export default function CameraController() {
                 // Calculate Offset (Shift target right => Asteroid moves left)
                 const direction = new THREE.Vector3().subVectors(asteroidPos, state.camera.position).normalize();
                 const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
-                const OFFSET_AMOUNT = 1.5; // Shift to make room for HUD
+                const OFFSET_AMOUNT = isMobile ? 0 : 1.5; // No offset on mobile
 
                 const targetWithOffset = asteroidPos.clone().add(right.multiplyScalar(OFFSET_AMOUNT));
 

@@ -28,15 +28,16 @@ function useIsMobile() {
 export default function Scene() {
     const isMobile = useIsMobile();
 
-    // We can access store here if we need to conditionally render things, 
-    // but mostly the Canvas handles its own world.
+    // Mobile-optimized camera settings - further back to see more
+    const cameraPosition: [number, number, number] = isMobile ? [0, 8, 28] : [0, 5, 20];
+    const cameraFov = isMobile ? 55 : 50; // Slightly wider FOV on mobile to see more
 
     return (
         <div className="canvas-container bg-deep-void">
             <Canvas
                 camera={{
-                    position: [0, 5, 20], // Starting position: slightly up and back
-                    fov: 50,              // Cinematic Field of View
+                    position: cameraPosition,
+                    fov: cameraFov,
                     near: 0.1,
                     far: 1000,
                 }}
