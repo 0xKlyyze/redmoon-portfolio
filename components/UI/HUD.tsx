@@ -416,6 +416,12 @@ export default function HUD() {
                                             <Icons.MessageCircle className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
                                         </a>
                                     )}
+                                    {data.metadata.links.supportEmail && (
+                                        <a href={`mailto:${data.metadata.links.supportEmail}`}
+                                            className="p-2.5 md:p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/10 hover:border-white/30 hover:text-white transition-all text-white/40 group touch-target touch-active">
+                                            <Icons.Mail className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
+                                        </a>
+                                    )}
                                     {data.metadata.links.docsUrl && (
                                         <a href={data.metadata.links.docsUrl} target="_blank" rel="noopener noreferrer"
                                             className="flex items-center gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/10 hover:border-white/30 text-white/40 hover:text-white transition-all text-[10px] md:text-xs font-medium group touch-active">
@@ -435,6 +441,7 @@ export default function HUD() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3, duration: 0.4 }}
                             >
+
                                 <a
                                     href={data.metadata.links.liveUrl}
                                     target="_blank"
