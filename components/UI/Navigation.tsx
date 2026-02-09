@@ -26,34 +26,25 @@ export default function Navigation() {
                             className="h-[2px] w-full bg-gradient-to-r from-transparent via-redmoon-crimson/50 to-transparent"
                             initial={{ scaleX: 0, opacity: 0 }}
                             animate={{ scaleX: 1, opacity: 1 }}
-                            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                            transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                         />
 
                         {/* Header content */}
                         <div className="px-4 md:px-10 py-3 md:py-5 flex items-center justify-between">
-                            {/* Left: Brand - Logo animates in from center */}
+                            {/* Left: Brand - Logo with shared layoutId for seamless transition */}
                             <motion.button
                                 onClick={() => {
                                     setActiveAsteroid(null);
                                     triggerPulse();
                                 }}
                                 className="group relative touch-active"
-                                initial={{
-                                    opacity: 0,
-                                    x: typeof window !== 'undefined' ? (window.innerWidth / 2 - 120) : 400,
-                                    y: typeof window !== 'undefined' ? (window.innerHeight / 2 - 60) : 300,
-                                    scale: 1.5,
-                                }}
-                                animate={{
-                                    opacity: 1,
-                                    x: 0,
-                                    y: 0,
-                                    scale: 1,
-                                }}
+                                layoutId="redmoon-logo"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
                                 transition={{
                                     duration: 1,
                                     ease: [0.16, 1, 0.3, 1],
-                                    delay: 0.1,
+                                    layout: { duration: 1, ease: [0.16, 1, 0.3, 1] }
                                 }}
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.97 }}
@@ -62,13 +53,15 @@ export default function Navigation() {
                                 <motion.div
                                     className="absolute -inset-4 bg-redmoon-crimson/20 blur-3xl rounded-full"
                                     initial={{ opacity: 0 }}
-                                    animate={{ opacity: 0 }}
                                     whileHover={{ opacity: 1 }}
                                     transition={{ duration: 0.7 }}
                                 />
 
                                 {/* Logo */}
-                                <div className="relative h-10 sm:h-12 md:h-14 lg:h-16 w-auto">
+                                <motion.div
+                                    className="relative h-10 sm:h-12 md:h-14 lg:h-16 w-auto"
+                                    layout
+                                >
                                     <Image
                                         src="/redmoon-logo.png"
                                         alt="Redmoon"
@@ -77,7 +70,7 @@ export default function Navigation() {
                                         className="h-full w-auto object-contain drop-shadow-[0_0_20px_rgba(255,42,42,0.6)] group-hover:drop-shadow-[0_0_40px_rgba(255,42,42,0.9)] transition-all duration-500"
                                         priority
                                     />
-                                </div>
+                                </motion.div>
                             </motion.button>
 
                             {/* Right: Navigation Actions */}
@@ -85,14 +78,14 @@ export default function Navigation() {
                                 className="flex items-center gap-2 md:gap-4"
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                transition={{ duration: 0.6, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
                             >
                                 {/* Scroll hint - hidden on mobile and tablet for cleanliness */}
                                 <motion.div
                                     className="hidden lg:flex items-center gap-2 text-orbital-grey/60"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.8, duration: 0.5 }}
+                                    transition={{ delay: 1.2, duration: 0.5 }}
                                 >
                                     <span className="text-[10px] font-mono tracking-wider">EXPLORE</span>
                                     <motion.div
@@ -110,7 +103,7 @@ export default function Navigation() {
                                     className="hidden lg:block w-px h-6 bg-white/10"
                                     initial={{ scaleY: 0 }}
                                     animate={{ scaleY: 1 }}
-                                    transition={{ delay: 0.7, duration: 0.4 }}
+                                    transition={{ delay: 1.1, duration: 0.4 }}
                                 />
 
                                 {/* Company Intel Button */}
@@ -119,7 +112,7 @@ export default function Navigation() {
                                     className="group relative flex items-center gap-2 px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl overflow-hidden touch-target touch-active"
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.6, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                                    transition={{ delay: 1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
@@ -147,7 +140,7 @@ export default function Navigation() {
                             className="h-12 md:h-16 bg-gradient-to-b from-deep-void/80 to-transparent pointer-events-none"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4, duration: 0.6 }}
+                            transition={{ delay: 0.7, duration: 0.6 }}
                         />
                     </motion.header>
                 </>

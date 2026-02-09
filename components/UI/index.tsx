@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { LayoutGroup } from "framer-motion";
 import Navigation from "./Navigation";
 import HeroOverlay from "./HeroOverlay";
 import HUD from "./HUD";
@@ -18,13 +19,15 @@ export default function UIOverlay() {
 
     return (
         <AdminProvider>
-            <div className="ui-layer absolute inset-0 pointer-events-none">
-                <Navigation />
-                <HeroOverlay />
-                <HUD />
-                <CompanyModal />
-                <AdminPanel />
-            </div>
+            <LayoutGroup>
+                <div className="ui-layer absolute inset-0 pointer-events-none">
+                    <Navigation />
+                    <HeroOverlay />
+                    <HUD />
+                    <CompanyModal />
+                    <AdminPanel />
+                </div>
+            </LayoutGroup>
         </AdminProvider>
     );
 }

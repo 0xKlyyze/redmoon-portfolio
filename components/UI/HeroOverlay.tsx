@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, LayoutGroup } from "framer-motion";
 import Image from "next/image";
 
 // Phase type for the onboarding experience
@@ -128,7 +128,7 @@ const AmbientGlow = ({ phase }: { phase: OnboardingPhase }) => (
             animate={{
                 width: phase === 'atmosphere' ? 300 : phase === 'reveal' ? 500 : 600,
                 height: phase === 'atmosphere' ? 300 : phase === 'reveal' ? 500 : 600,
-                opacity: phase === 'atmosphere' ? 0.5 : phase === 'transitioning' ? 0 : 1,
+                opacity: phase === 'atmosphere' ? 0.5 : phase === 'transitioning' || phase === 'complete' ? 0 : 1,
             }}
             transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
         />
@@ -143,7 +143,7 @@ const AmbientGlow = ({ phase }: { phase: OnboardingPhase }) => (
             animate={{
                 width: 800,
                 height: 800,
-                opacity: phase !== 'atmosphere' && phase !== 'transitioning' ? 0.6 : 0,
+                opacity: phase !== 'atmosphere' && phase !== 'transitioning' && phase !== 'complete' ? 0.6 : 0,
             }}
             transition={{ duration: 2.5, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
         />
@@ -155,7 +155,7 @@ const AmbientGlow = ({ phase }: { phase: OnboardingPhase }) => (
             animate={{
                 width: [80, 100, 80],
                 height: [80, 100, 80],
-                opacity: phase !== 'atmosphere' && phase !== 'transitioning' ? [0.3, 0.6, 0.3] : 0,
+                opacity: phase !== 'atmosphere' && phase !== 'transitioning' && phase !== 'complete' ? [0.3, 0.6, 0.3] : 0,
             }}
             transition={{
                 width: { duration: 3, repeat: Infinity, ease: "easeInOut" },
@@ -216,16 +216,16 @@ export default function HeroOverlay() {
     const activeAsteroid = useAppStore((state) => state.activeAsteroid);
     const setOnboardingComplete = useAppStore((state) => state.setOnboardingComplete);
 
-    // Mouse position for subtle parallax - MUST be called unconditionally
+    // Mouse position for parallax effect - MUST be called unconditionally
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
-    const springConfig = { damping: 25, stiffness: 150 };
-    const parallaxX = useSpring(useTransform(mouseX, [-500, 500], [-15, 15]), springConfig);
-    const parallaxY = useSpring(useTransform(mouseY, [-500, 500], [-15, 15]), springConfig);
+    const springConfig = { damping: 20, stiffness: 80 };
+    const parallaxX = useSpring(useTransform(mouseX, [-500, 500], [-50, 50]), springConfig);
+    const parallaxY = useSpring(useTransform(mouseY, [-500, 500], [-50, 50]), springConfig);
 
     // Pre-compute all transforms - hooks must be called unconditionally
-    const contentParallaxX = useTransform(parallaxX, v => v * 0.5);
-    const contentParallaxY = useTransform(parallaxY, v => v * 0.5);
+    const contentParallaxX = useTransform(parallaxX, v => v * 0.25);
+    const contentParallaxY = useTransform(parallaxY, v => v * 0.25);
 
     // Number of floating particles
     const particleCount = useMemo(() => {
@@ -285,18 +285,24 @@ export default function HeroOverlay() {
         markOnboardingComplete();
         setPhase('transitioning');
 
-        // Signal navigation to start its animation
-        setOnboardingComplete(true);
+        // Signal navigation to start its animation after a brief moment
+        // This creates the seamless handoff for the layoutId animation
+        setTimeout(() => {
+            setOnboardingComplete(true);
+        }, 100);
 
-        // Complete the transition after logo animation
+        // Complete the transition after logo animation finishes
         setTimeout(() => {
             setPhase('complete');
             setShouldShow(false);
-        }, 1000);
+        }, 1200);
     }, [setOnboardingComplete]);
 
     // Don't render if complete - but hooks are already called above
     if (!shouldShow) return null;
+
+    // Determine if logo should be shown in onboarding
+    const showLogoInOnboarding = phase !== 'atmosphere' && phase !== 'complete';
 
     return (
         <AnimatePresence>
@@ -314,7 +320,7 @@ export default function HeroOverlay() {
                         className="absolute inset-0"
                         style={{ x: parallaxX, y: parallaxY }}
                         animate={{ opacity: phase === 'transitioning' ? 0 : 1 }}
-                        transition={{ duration: 0.6 }}
+                        transition={{ duration: 0.8 }}
                     >
                         {/* Ambient glows */}
                         <AmbientGlow phase={phase} />
@@ -339,34 +345,30 @@ export default function HeroOverlay() {
                         className="relative z-10 text-center max-w-2xl mx-auto px-6"
                         style={{ x: contentParallaxX, y: contentParallaxY }}
                     >
-                        {/* Logo reveal (Phase 2+) - Animate to header position on transition */}
+                        {/* Logo reveal (Phase 2+) with layoutId for shared element transition */}
                         <AnimatePresence mode="wait">
-                            {phase !== 'atmosphere' && (
+                            {showLogoInOnboarding && (
                                 <motion.div
                                     ref={logoRef}
+                                    layoutId="redmoon-logo"
                                     initial={{ opacity: 0, scale: 0.8, filter: 'blur(20px)' }}
-                                    animate={phase === 'transitioning' ? {
-                                        // Animate to top-left navigation position
-                                        opacity: 0,
-                                        x: typeof window !== 'undefined' ? -(window.innerWidth / 2 - 120) : -400,
-                                        y: typeof window !== 'undefined' ? -(window.innerHeight / 2 - 50) : -300,
-                                        scale: 0.6,
-                                        filter: 'blur(0px)',
-                                    } : {
-                                        opacity: 1,
+                                    animate={{
+                                        opacity: phase === 'transitioning' ? 0 : 1,
                                         scale: 1,
                                         filter: 'blur(0px)',
-                                        x: 0,
-                                        y: 0,
                                     }}
                                     exit={{ opacity: 0 }}
                                     transition={{
-                                        duration: phase === 'transitioning' ? 0.8 : 0.8,
-                                        ease: [0.16, 1, 0.3, 1]
+                                        duration: 0.8,
+                                        ease: [0.16, 1, 0.3, 1],
+                                        layout: { duration: 1, ease: [0.16, 1, 0.3, 1] }
                                     }}
                                     className="mb-8"
                                 >
-                                    <div className="relative h-16 sm:h-20 md:h-24 mx-auto mb-6">
+                                    <motion.div
+                                        className="relative h-16 sm:h-20 md:h-24 mx-auto mb-6"
+                                        layout
+                                    >
                                         <Image
                                             src="/redmoon-logo.png"
                                             alt="Redmoon"
@@ -375,7 +377,7 @@ export default function HeroOverlay() {
                                             className="h-full w-auto mx-auto object-contain drop-shadow-[0_0_30px_rgba(255,42,42,0.7)]"
                                             priority
                                         />
-                                    </div>
+                                    </motion.div>
 
                                     {/* Tagline with typewriter effect - hidden during transition */}
                                     {phase !== 'transitioning' && (
