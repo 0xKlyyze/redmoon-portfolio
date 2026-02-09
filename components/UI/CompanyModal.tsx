@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { CompanyInfo } from "@/types";
 import * as Icons from 'lucide-react';
+import Image from "next/image";
 
 // Social media icons mapping
 const SocialIcon = ({ name, className }: { name: string, className?: string }) => {
@@ -19,18 +20,18 @@ const SocialIcon = ({ name, className }: { name: string, className?: string }) =
     }
 };
 
-// Mobile animation variants (slide up from bottom)
-const mobileModalVariants = {
-    hidden: { y: "100%", opacity: 1 },
-    visible: { y: 0, opacity: 1 },
-    exit: { y: "100%", opacity: 1 }
+// Modern stagger animation for list items
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+    }
 };
 
-// Desktop animation variants (scale in)
-const desktopModalVariants = {
-    hidden: { opacity: 0, scale: 0.95, y: 20 },
-    visible: { opacity: 1, scale: 1, y: 0 },
-    exit: { opacity: 0, scale: 0.95, y: 20 }
+const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 }
 };
 
 export default function CompanyModal() {
@@ -39,7 +40,7 @@ export default function CompanyModal() {
 
     const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeSection, setActiveSection] = useState<'about' | 'contact' | 'legal'>('about');
+    const [activeTab, setActiveTab] = useState<'overview' | 'connect' | 'legal'>('overview');
 
     // Fetch company info when modal opens
     useEffect(() => {
@@ -72,310 +73,370 @@ export default function CompanyModal() {
         return parts.length > 0 ? parts.join(', ') : null;
     };
 
-    // Detect if we're on mobile (for animation variant selection)
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
     return (
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Backdrop with blur */}
+                    {/* Backdrop with premium blur */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
                         onClick={() => setOpen(false)}
-                        className="fixed inset-0 bg-black/85 backdrop-blur-md z-[60]"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[60]"
                     />
 
-                    {/* Modal Content Container */}
+                    {/* Floating particles effect in backdrop */}
                     <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={isMobile ? mobileModalVariants : desktopModalVariants}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[70] flex flex-col md:block pointer-events-none"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.5 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[61] pointer-events-none overflow-hidden"
                     >
-                        {/* Modal Panel */}
-                        <div className="pointer-events-auto w-full md:w-[90vw] md:max-w-2xl h-full md:h-auto md:max-h-[85vh] flex flex-col glass-panel-premium md:rounded-3xl shadow-2xl mt-auto md:mt-0">
+                        {[...Array(20)].map((_, i) => (
+                            <motion.div
+                                key={i}
+                                className="absolute w-1 h-1 bg-redmoon-crimson/30 rounded-full"
+                                style={{
+                                    left: `${Math.random() * 100}%`,
+                                    top: `${Math.random() * 100}%`,
+                                }}
+                                animate={{
+                                    y: [0, -30, 0],
+                                    opacity: [0.2, 0.6, 0.2],
+                                }}
+                                transition={{
+                                    duration: 3 + Math.random() * 2,
+                                    repeat: Infinity,
+                                    delay: Math.random() * 2,
+                                }}
+                            />
+                        ))}
+                    </motion.div>
 
-                            {/* Mobile Drag Indicator */}
-                            <div className="md:hidden flex justify-center pt-3 pb-1">
-                                <div className="drag-indicator" />
-                            </div>
+                    {/* Modal Container */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 40 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                        className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-8 pointer-events-none"
+                    >
+                        {/* Modal Panel - Modern glassmorphism */}
+                        <div className="pointer-events-auto w-full max-w-lg relative">
+                            {/* Outer glow ring */}
+                            <div className="absolute -inset-px bg-gradient-to-br from-redmoon-crimson/30 via-transparent to-redmoon-glow/20 rounded-3xl blur-sm" />
 
-                            {/* Close Button */}
-                            <button
-                                onClick={() => setOpen(false)}
-                                className="absolute top-4 right-4 md:top-5 md:right-5 z-10 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all duration-200 group touch-target"
-                            >
-                                <Icons.X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-                            </button>
+                            {/* Main panel */}
+                            <div className="relative bg-gradient-to-br from-[#0a0a0f]/95 via-[#12121a]/95 to-[#0a0a0f]/95 backdrop-blur-2xl rounded-3xl border border-white/[0.08] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
 
-                            {isLoading ? (
-                                <div className="flex flex-col items-center justify-center h-80 md:h-96 gap-4">
-                                    <div className="relative w-12 h-12">
-                                        <div className="absolute inset-0 rounded-full border-2 border-white/10" />
-                                        <div className="absolute inset-0 rounded-full border-2 border-t-redmoon-crimson animate-spin" />
-                                    </div>
-                                    <span className="text-xs font-mono text-white/40 tracking-widest animate-pulse">LOADING INTEL...</span>
+                                {/* Animated gradient border */}
+                                <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+                                    <motion.div
+                                        className="absolute inset-0 bg-gradient-to-r from-redmoon-crimson/20 via-transparent to-redmoon-glow/20"
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                        style={{ transformOrigin: "center" }}
+                                    />
                                 </div>
-                            ) : (
-                                <>
-                                    {/* Header with Logo & Name */}
-                                    <div className="relative p-6 md:p-8 pb-4 md:pb-6 text-center border-b border-white/[0.06]">
-                                        {/* Background Glow */}
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-full bg-redmoon-crimson/5 blur-3xl rounded-full" />
 
-                                        {/* Animated Logo/Icon */}
+                                {/* Close Button - Floating style */}
+                                <motion.button
+                                    onClick={() => setOpen(false)}
+                                    className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center text-white/40 hover:text-white transition-all duration-300 group"
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                >
+                                    <Icons.X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+                                </motion.button>
+
+                                {isLoading ? (
+                                    <div className="flex flex-col items-center justify-center h-80 gap-6">
                                         <motion.div
-                                            className="relative w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/10 flex items-center justify-center overflow-hidden hover-lift shadow-glow-subtle"
-                                            animate={{
-                                                boxShadow: ['0 0 20px rgba(255, 42, 42, 0.1)', '0 0 30px rgba(255, 42, 42, 0.2)', '0 0 20px rgba(255, 42, 42, 0.1)']
-                                            }}
-                                            transition={{ duration: 4, repeat: Infinity }}
+                                            className="relative w-16 h-16"
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                         >
-                                            {companyInfo?.branding?.logo ? (
-                                                <img
-                                                    src={companyInfo.branding.logo}
-                                                    alt={companyInfo.companyName}
-                                                    className="w-10 h-10 md:w-14 md:h-14 object-contain"
-                                                />
-                                            ) : (
-                                                <span className="text-2xl md:text-4xl font-orbitron font-bold text-gradient-crimson drop-shadow-md">
-                                                    {companyInfo?.companyName?.charAt(0) || 'R'}
-                                                </span>
-                                            )}
+                                            <div className="absolute inset-0 rounded-full border-2 border-white/5" />
+                                            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-redmoon-crimson" />
+                                            <div className="absolute inset-2 rounded-full border border-transparent border-b-redmoon-glow/50" />
                                         </motion.div>
-
-                                        <h2 className="font-orbitron text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-widest mb-2">
-                                            {companyInfo?.companyName || 'REDMOON'}
-                                        </h2>
-
-                                        {companyInfo?.tagline && (
-                                            <p className="text-xs md:text-sm text-white/50 font-light max-w-sm mx-auto">
-                                                {companyInfo.tagline}
-                                            </p>
-                                        )}
-
-                                        {companyInfo?.foundedYear && (
-                                            <span className="inline-block mt-3 md:mt-4 px-3 py-1 text-[9px] md:text-[10px] font-mono text-tech-blue bg-tech-blue/10 border border-tech-blue/20 rounded-full">
-                                                EST. {companyInfo.foundedYear}
-                                            </span>
-                                        )}
+                                        <span className="text-xs font-mono text-white/30 tracking-[0.3em]">LOADING</span>
                                     </div>
+                                ) : (
+                                    <div className="relative">
+                                        {/* Header - Hero style with logo */}
+                                        <div className="relative px-8 pt-10 pb-6 text-center">
+                                            {/* Background orb glow */}
+                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-redmoon-crimson/10 rounded-full blur-[80px] pointer-events-none" />
 
-                                    {/* Section Tabs - Scrollable on mobile */}
-                                    <div className="flex border-b border-white/[0.06] bg-black/20 overflow-x-auto hide-scrollbar-mobile">
-                                        {[
-                                            { id: 'about', label: 'About', icon: Icons.Building2 },
-                                            { id: 'contact', label: 'Contact', icon: Icons.Mail },
-                                            { id: 'legal', label: 'Legal', icon: Icons.Scale },
-                                        ].map((tab) => (
-                                            <button
-                                                key={tab.id}
-                                                onClick={() => setActiveSection(tab.id as typeof activeSection)}
-                                                className={`flex-1 min-w-[100px] px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-medium transition-all relative flex items-center justify-center gap-1.5 md:gap-2 touch-target ${activeSection === tab.id
-                                                    ? 'text-white'
-                                                    : 'text-white/40 hover:text-white/70 hover:bg-white/[0.02]'
-                                                    }`}
+                                            {/* Logo */}
+                                            <motion.div
+                                                className="relative mx-auto mb-6"
+                                                initial={{ scale: 0.8, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                transition={{ delay: 0.1 }}
                                             >
-                                                <tab.icon className={`w-4 h-4 ${activeSection === tab.id ? 'text-redmoon-crimson' : ''}`} />
-                                                <span className="tracking-wide uppercase font-orbitron text-[9px] md:text-xs">{tab.label}</span>
-
-                                                {activeSection === tab.id && (
-                                                    <motion.div
-                                                        layoutId="activeCompanyTab"
-                                                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-redmoon-crimson via-redmoon-glow to-redmoon-crimson shadow-[0_-2px_8px_rgba(255,42,42,0.5)]"
+                                                <div className="relative h-16 md:h-20 w-auto flex justify-center">
+                                                    <Image
+                                                        src="/redmoon-logo.png"
+                                                        alt="Redmoon"
+                                                        width={240}
+                                                        height={80}
+                                                        className="h-full w-auto object-contain drop-shadow-[0_0_30px_rgba(255,42,42,0.4)]"
+                                                        priority
                                                     />
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
+                                                </div>
+                                            </motion.div>
 
-                                    {/* Content Area */}
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar hide-scrollbar-mobile p-4 md:p-6 lg:p-8 bg-black/10">
-                                        <AnimatePresence mode="wait">
-                                            {activeSection === 'about' && (
-                                                <motion.div
-                                                    key="about"
+                                            {/* Tagline with animated underline */}
+                                            {companyInfo?.tagline && (
+                                                <motion.p
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="space-y-6 md:space-y-8"
+                                                    transition={{ delay: 0.2 }}
+                                                    className="text-sm text-white/50 font-light tracking-wide"
                                                 >
-                                                    {/* Description */}
-                                                    {companyInfo?.seo?.description && (
-                                                        <div className="space-y-2 md:space-y-3">
-                                                            <h4 className="text-[9px] md:text-[10px] font-mono text-white/30 uppercase tracking-[0.2em]">Overview</h4>
-                                                            <p className="text-white/70 leading-relaxed font-light text-sm md:text-base">
-                                                                {companyInfo.seo.description}
-                                                            </p>
-                                                        </div>
-                                                    )}
+                                                    {companyInfo.tagline}
+                                                </motion.p>
+                                            )}
 
-                                                    {/* Social Links */}
-                                                    {socialLinks.length > 0 && (
-                                                        <div className="space-y-2 md:space-y-3">
-                                                            <h4 className="text-[9px] md:text-[10px] font-mono text-white/30 uppercase tracking-[0.2em]">Connect</h4>
-                                                            <div className="flex flex-wrap gap-2 md:gap-3">
-                                                                {socialLinks.map(([platform, url]) => (
-                                                                    <a
-                                                                        key={platform}
-                                                                        href={url as string}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 flex items-center justify-center transition-all group hover-lift touch-target touch-active"
-                                                                        title={platform}
-                                                                    >
-                                                                        <SocialIcon name={platform} className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover:text-white transition-colors" />
-                                                                    </a>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Branding Colors */}
-                                                    {(companyInfo?.branding?.primaryColor || companyInfo?.branding?.secondaryColor) && (
-                                                        <div className="space-y-2 md:space-y-3">
-                                                            <h4 className="text-[9px] md:text-[10px] font-mono text-white/30 uppercase tracking-[0.2em]">Brand Identity</h4>
-                                                            <div className="flex flex-wrap gap-3 md:gap-4">
-                                                                {companyInfo.branding.primaryColor && (
-                                                                    <div className="group flex items-center gap-2 md:gap-3 p-2 pr-3 md:pr-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                                                                        <div
-                                                                            className="w-7 h-7 md:w-8 md:h-8 rounded-md shadow-lg"
-                                                                            style={{ backgroundColor: companyInfo.branding.primaryColor }}
-                                                                        />
-                                                                        <span className="text-[10px] md:text-xs font-mono text-white/60 group-hover:text-white transition-colors">
-                                                                            {companyInfo.branding.primaryColor}
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                                {companyInfo.branding.secondaryColor && (
-                                                                    <div className="group flex items-center gap-2 md:gap-3 p-2 pr-3 md:pr-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                                                                        <div
-                                                                            className="w-7 h-7 md:w-8 md:h-8 rounded-md shadow-lg"
-                                                                            style={{ backgroundColor: companyInfo.branding.secondaryColor }}
-                                                                        />
-                                                                        <span className="text-[10px] md:text-xs font-mono text-white/60 group-hover:text-white transition-colors">
-                                                                            {companyInfo.branding.secondaryColor}
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                            {/* Founded badge */}
+                                            {companyInfo?.foundedYear && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.8 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    transition={{ delay: 0.3 }}
+                                                    className="inline-flex items-center gap-2 mt-4 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]"
+                                                >
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-redmoon-crimson animate-pulse" />
+                                                    <span className="text-[10px] font-mono text-white/40 tracking-widest">
+                                                        EST. {companyInfo.foundedYear}
+                                                    </span>
                                                 </motion.div>
                                             )}
+                                        </div>
 
-                                            {activeSection === 'contact' && (
-                                                <motion.div
-                                                    key="contact"
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="space-y-4 md:space-y-6"
-                                                >
-                                                    <div className="grid grid-cols-1 gap-3 md:gap-4">
-                                                        {companyInfo?.contact?.email && (
-                                                            <a
-                                                                href={`mailto:${companyInfo.contact.email}`}
-                                                                className="p-4 md:p-5 bg-white/[0.03] rounded-xl border border-white/[0.06] hover:border-tech-blue/50 hover:bg-tech-blue/[0.05] transition-all group touch-active"
+                                        {/* Tab Navigation - Pill style */}
+                                        <div className="px-6 pb-4">
+                                            <div className="flex bg-white/[0.02] rounded-2xl p-1.5 border border-white/[0.04]">
+                                                {[
+                                                    { id: 'overview', label: 'Overview', icon: Icons.Sparkles },
+                                                    { id: 'connect', label: 'Connect', icon: Icons.Link2 },
+                                                    { id: 'legal', label: 'Legal', icon: Icons.Shield },
+                                                ].map((tab) => (
+                                                    <button
+                                                        key={tab.id}
+                                                        onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                                                        className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all duration-300 ${activeTab === tab.id
+                                                                ? 'text-white'
+                                                                : 'text-white/40 hover:text-white/60'
+                                                            }`}
+                                                    >
+                                                        {activeTab === tab.id && (
+                                                            <motion.div
+                                                                layoutId="activeTabBg"
+                                                                className="absolute inset-0 bg-gradient-to-r from-redmoon-crimson/20 to-redmoon-glow/10 rounded-xl border border-redmoon-crimson/30"
+                                                                transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+                                                            />
+                                                        )}
+                                                        <tab.icon className="w-3.5 h-3.5 relative z-10" />
+                                                        <span className="relative z-10 hidden sm:inline">{tab.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Content Area */}
+                                        <div className="px-6 pb-6 max-h-[40vh] overflow-y-auto custom-scrollbar">
+                                            <AnimatePresence mode="wait">
+                                                {activeTab === 'overview' && (
+                                                    <motion.div
+                                                        key="overview"
+                                                        variants={containerVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        className="space-y-4"
+                                                    >
+                                                        {/* Description Card */}
+                                                        {companyInfo?.seo?.description && (
+                                                            <motion.div
+                                                                variants={itemVariants}
+                                                                className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.06] hover:border-white/[0.1] transition-colors"
                                                             >
-                                                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mb-2 md:mb-3 text-white/40 group-hover:text-tech-blue group-hover:bg-tech-blue/10 transition-colors">
-                                                                    <Icons.Mail className="w-4 h-4" />
+                                                                <div className="flex items-center gap-2 mb-3">
+                                                                    <Icons.Info className="w-4 h-4 text-redmoon-crimson/70" />
+                                                                    <span className="text-[10px] font-mono text-white/30 tracking-widest uppercase">About</span>
                                                                 </div>
-                                                                <h4 className="text-[9px] md:text-[10px] font-mono text-white/40 uppercase tracking-wider mb-1">
-                                                                    General Inquiries
-                                                                </h4>
-                                                                <p className="text-sm font-medium text-white group-hover:text-tech-blue transition-colors break-all">
-                                                                    {companyInfo.contact.email}
+                                                                <p className="text-sm text-white/70 leading-relaxed font-light">
+                                                                    {companyInfo.seo.description}
                                                                 </p>
-                                                            </a>
+                                                            </motion.div>
+                                                        )}
+
+                                                        {/* Brand Colors */}
+                                                        {(companyInfo?.branding?.primaryColor || companyInfo?.branding?.secondaryColor) && (
+                                                            <motion.div
+                                                                variants={itemVariants}
+                                                                className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.02] to-transparent border border-white/[0.04]"
+                                                            >
+                                                                <div className="flex items-center gap-2 mb-4">
+                                                                    <Icons.Palette className="w-4 h-4 text-redmoon-glow/70" />
+                                                                    <span className="text-[10px] font-mono text-white/30 tracking-widest uppercase">Brand</span>
+                                                                </div>
+                                                                <div className="flex gap-3">
+                                                                    {companyInfo.branding?.primaryColor && (
+                                                                        <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-black/20 border border-white/[0.04]">
+                                                                            <div
+                                                                                className="w-6 h-6 rounded-lg shadow-lg ring-2 ring-white/10"
+                                                                                style={{ backgroundColor: companyInfo.branding.primaryColor }}
+                                                                            />
+                                                                            <span className="text-xs font-mono text-white/50">
+                                                                                {companyInfo.branding.primaryColor}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                    {companyInfo.branding?.secondaryColor && (
+                                                                        <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-black/20 border border-white/[0.04]">
+                                                                            <div
+                                                                                className="w-6 h-6 rounded-lg shadow-lg ring-2 ring-white/10"
+                                                                                style={{ backgroundColor: companyInfo.branding.secondaryColor }}
+                                                                            />
+                                                                            <span className="text-xs font-mono text-white/50">
+                                                                                {companyInfo.branding.secondaryColor}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </motion.div>
+                                                )}
+
+                                                {activeTab === 'connect' && (
+                                                    <motion.div
+                                                        key="connect"
+                                                        variants={containerVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        className="space-y-3"
+                                                    >
+                                                        {/* Contact Cards */}
+                                                        {companyInfo?.contact?.email && (
+                                                            <motion.a
+                                                                variants={itemVariants}
+                                                                href={`mailto:${companyInfo.contact.email}`}
+                                                                className="group flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-tech-blue/5 to-transparent border border-white/[0.04] hover:border-tech-blue/30 transition-all duration-300"
+                                                            >
+                                                                <div className="w-12 h-12 rounded-xl bg-tech-blue/10 flex items-center justify-center group-hover:bg-tech-blue/20 transition-colors">
+                                                                    <Icons.Mail className="w-5 h-5 text-tech-blue" />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mb-0.5">Email</p>
+                                                                    <p className="text-sm text-white group-hover:text-tech-blue transition-colors truncate">
+                                                                        {companyInfo.contact.email}
+                                                                    </p>
+                                                                </div>
+                                                                <Icons.ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-tech-blue transition-colors" />
+                                                            </motion.a>
                                                         )}
 
                                                         {companyInfo?.contact?.supportEmail && (
-                                                            <a
+                                                            <motion.a
+                                                                variants={itemVariants}
                                                                 href={`mailto:${companyInfo.contact.supportEmail}`}
-                                                                className="p-4 md:p-5 bg-white/[0.03] rounded-xl border border-white/[0.06] hover:border-neon-green/50 hover:bg-neon-green/[0.05] transition-all group touch-active"
+                                                                className="group flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-neon-green/5 to-transparent border border-white/[0.04] hover:border-neon-green/30 transition-all duration-300"
                                                             >
-                                                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mb-2 md:mb-3 text-white/40 group-hover:text-neon-green group-hover:bg-neon-green/10 transition-colors">
-                                                                    <Icons.LifeBuoy className="w-4 h-4" />
+                                                                <div className="w-12 h-12 rounded-xl bg-neon-green/10 flex items-center justify-center group-hover:bg-neon-green/20 transition-colors">
+                                                                    <Icons.LifeBuoy className="w-5 h-5 text-neon-green" />
                                                                 </div>
-                                                                <h4 className="text-[9px] md:text-[10px] font-mono text-white/40 uppercase tracking-wider mb-1">
-                                                                    Customer Support
-                                                                </h4>
-                                                                <p className="text-sm font-medium text-white group-hover:text-neon-green transition-colors break-all">
-                                                                    {companyInfo.contact.supportEmail}
-                                                                </p>
-                                                            </a>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mb-0.5">Support</p>
+                                                                    <p className="text-sm text-white group-hover:text-neon-green transition-colors truncate">
+                                                                        {companyInfo.contact.supportEmail}
+                                                                    </p>
+                                                                </div>
+                                                                <Icons.ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-neon-green transition-colors" />
+                                                            </motion.a>
                                                         )}
 
-                                                        {companyInfo?.contact?.phone && (
-                                                            <a
-                                                                href={`tel:${companyInfo.contact.phone}`}
-                                                                className="p-4 md:p-5 bg-white/[0.03] rounded-xl border border-white/[0.06] hover:border-solar-yellow/50 hover:bg-solar-yellow/[0.05] transition-all group touch-active"
-                                                            >
-                                                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mb-2 md:mb-3 text-white/40 group-hover:text-solar-yellow group-hover:bg-solar-yellow/10 transition-colors">
-                                                                    <Icons.Phone className="w-4 h-4" />
+                                                        {/* Social Links */}
+                                                        {socialLinks.length > 0 && (
+                                                            <motion.div variants={itemVariants} className="pt-2">
+                                                                <p className="text-[10px] font-mono text-white/20 uppercase tracking-widest mb-3 px-1">Social</p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {socialLinks.map(([platform, url]) => (
+                                                                        <motion.a
+                                                                            key={platform}
+                                                                            href={url as string}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="w-11 h-11 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 flex items-center justify-center transition-all group"
+                                                                            whileHover={{ scale: 1.05, y: -2 }}
+                                                                            whileTap={{ scale: 0.95 }}
+                                                                            title={platform}
+                                                                        >
+                                                                            <SocialIcon name={platform} className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+                                                                        </motion.a>
+                                                                    ))}
                                                                 </div>
-                                                                <h4 className="text-[9px] md:text-[10px] font-mono text-white/40 uppercase tracking-wider mb-1">
-                                                                    Phone Support
-                                                                </h4>
-                                                                <p className="text-sm font-medium text-white group-hover:text-solar-yellow transition-colors">
-                                                                    {companyInfo.contact.phone}
-                                                                </p>
-                                                            </a>
+                                                            </motion.div>
                                                         )}
-                                                    </div>
 
-                                                    {/* Address */}
-                                                    {formatAddress() && (
-                                                        <div className="p-4 md:p-5 bg-white/[0.02] rounded-xl border border-white/[0.04]">
-                                                            <h4 className="text-[9px] md:text-[10px] font-mono text-white/30 uppercase tracking-[0.2em] mb-2 md:mb-3">
-                                                                Headquarters
-                                                            </h4>
-                                                            <div className="flex items-start gap-3 md:gap-4">
-                                                                <div className="mt-0.5 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40">
-                                                                    <Icons.MapPin className="w-4 h-4" />
+                                                        {/* Address */}
+                                                        {formatAddress() && (
+                                                            <motion.div
+                                                                variants={itemVariants}
+                                                                className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] mt-3"
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                                                        <Icons.MapPin className="w-4 h-4 text-white/40" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mb-1">Headquarters</p>
+                                                                        <p className="text-sm text-white/60 leading-relaxed">{formatAddress()}</p>
+                                                                    </div>
                                                                 </div>
-                                                                <p className="text-sm text-white/70 leading-relaxed font-light">
-                                                                    {formatAddress()}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </motion.div>
-                                            )}
+                                                            </motion.div>
+                                                        )}
+                                                    </motion.div>
+                                                )}
 
-                                            {activeSection === 'legal' && (
-                                                <motion.div
-                                                    key="legal"
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="space-y-3 md:space-y-4"
-                                                >
-                                                    <div className="grid grid-cols-1 gap-2 md:gap-3">
+                                                {activeTab === 'legal' && (
+                                                    <motion.div
+                                                        key="legal"
+                                                        variants={containerVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        className="space-y-2"
+                                                    >
                                                         {[
-                                                            { key: 'privacyPolicy', label: 'Privacy Policy', icon: Icons.Lock },
-                                                            { key: 'termsOfService', label: 'Terms of Service', icon: Icons.FileText },
-                                                            { key: 'cookiePolicy', label: 'Cookie Policy', icon: Icons.Cookie },
-                                                            { key: 'refundPolicy', label: 'Refund Policy', icon: Icons.Receipt },
-                                                        ].map(({ key, label, icon: Icon }) => {
+                                                            { key: 'privacyPolicy', label: 'Privacy Policy', icon: Icons.Lock, color: 'redmoon-crimson' },
+                                                            { key: 'termsOfService', label: 'Terms of Service', icon: Icons.FileText, color: 'tech-blue' },
+                                                            { key: 'cookiePolicy', label: 'Cookie Policy', icon: Icons.Cookie, color: 'solar-yellow' },
+                                                            { key: 'refundPolicy', label: 'Refund Policy', icon: Icons.Receipt, color: 'neon-green' },
+                                                        ].map(({ key, label, icon: Icon, color }) => {
                                                             const value = companyInfo?.legal?.[key as keyof typeof companyInfo.legal];
                                                             if (!value) return null;
 
                                                             const isUrl = value.startsWith('http');
 
                                                             return (
-                                                                <div key={key} className="p-3 md:p-4 bg-white/[0.03] rounded-xl border border-white/[0.06] hover:bg-white/[0.06] transition-all group flex items-center justify-between touch-active">
-                                                                    <div className="flex items-center gap-3 md:gap-4">
-                                                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white transition-colors">
-                                                                            <Icon className="w-4 h-4" />
+                                                                <motion.div
+                                                                    key={key}
+                                                                    variants={itemVariants}
+                                                                    className="group p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all flex items-center justify-between"
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`w-9 h-9 rounded-lg bg-${color}/10 flex items-center justify-center`}>
+                                                                            <Icon className={`w-4 h-4 text-${color}/70`} />
                                                                         </div>
-                                                                        <h4 className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{label}</h4>
+                                                                        <span className="text-sm text-white/70 group-hover:text-white transition-colors">{label}</span>
                                                                     </div>
 
                                                                     {isUrl ? (
@@ -383,43 +444,46 @@ export default function CompanyModal() {
                                                                             href={value}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
-                                                                            className="px-3 py-1.5 rounded-lg bg-white/5 text-xs text-tech-blue hover:bg-tech-blue/10 transition-colors flex items-center gap-1.5 touch-target"
+                                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-white/50 hover:text-white transition-all"
                                                                         >
-                                                                            <span>View</span>
+                                                                            View
                                                                             <Icons.ExternalLink className="w-3 h-3" />
                                                                         </a>
                                                                     ) : (
-                                                                        <span className="text-xs text-white/30 italic">Text only</span>
+                                                                        <span className="text-[10px] text-white/20 italic">Available</span>
                                                                     )}
-                                                                </div>
+                                                                </motion.div>
                                                             );
                                                         })}
-                                                    </div>
 
-                                                    {!companyInfo?.legal?.privacyPolicy &&
-                                                        !companyInfo?.legal?.termsOfService &&
-                                                        !companyInfo?.legal?.cookiePolicy &&
-                                                        !companyInfo?.legal?.refundPolicy && (
-                                                            <div className="flex flex-col items-center justify-center py-10 md:py-12 text-center">
-                                                                <Icons.FileX className="w-10 h-10 md:w-12 md:h-12 text-white/10 mb-3 md:mb-4" />
-                                                                <p className="text-sm text-white/40">
-                                                                    No legal documents currently available for public view.
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
+                                                        {!companyInfo?.legal?.privacyPolicy &&
+                                                            !companyInfo?.legal?.termsOfService &&
+                                                            !companyInfo?.legal?.cookiePolicy &&
+                                                            !companyInfo?.legal?.refundPolicy && (
+                                                                <motion.div
+                                                                    variants={itemVariants}
+                                                                    className="flex flex-col items-center justify-center py-12 text-center"
+                                                                >
+                                                                    <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mb-4">
+                                                                        <Icons.FileX className="w-7 h-7 text-white/10" />
+                                                                    </div>
+                                                                    <p className="text-sm text-white/30">No legal documents available</p>
+                                                                </motion.div>
+                                                            )}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
 
-                                    {/* Footer */}
-                                    <div className="p-3 md:p-4 border-t border-white/[0.06] text-center bg-black/20 safe-area-bottom">
-                                        <p className="text-[9px] md:text-[10px] font-mono text-white/30 tracking-widest">
-                                            © {new Date().getFullYear()} {companyInfo?.companyName?.toUpperCase() || 'REDMOON'}. ALL SYSTEM RIGHTS RESERVED.
-                                        </p>
+                                        {/* Footer */}
+                                        <div className="px-6 py-4 border-t border-white/[0.04] bg-black/20">
+                                            <p className="text-[9px] font-mono text-white/20 tracking-[0.2em] text-center">
+                                                © {new Date().getFullYear()} {companyInfo?.companyName?.toUpperCase() || 'REDMOON'} • ALL RIGHTS RESERVED
+                                            </p>
+                                        </div>
                                     </div>
-                                </>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </motion.div>
                 </>

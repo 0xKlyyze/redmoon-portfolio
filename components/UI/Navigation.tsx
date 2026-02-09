@@ -23,37 +23,29 @@ export default function Navigation() {
 
                 {/* Header content */}
                 <div className="px-4 md:px-10 py-3 md:py-5 flex items-center justify-between">
-                    {/* Left: Brand */}
+                    {/* Left: Brand - Large logo only */}
                     <motion.button
                         onClick={() => {
                             setActiveAsteroid(null);
                             triggerPulse();
                         }}
-                        className="group flex flex-row items-center gap-3 md:gap-4 relative touch-active"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="group relative touch-active"
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
                     >
-                        {/* Logo with glow effect */}
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-redmoon-crimson/40 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 scale-150" />
-                            <div className="relative w-9 h-9 md:w-12 md:h-12 transition-transform duration-500 group-hover:rotate-[360deg]">
-                                <Image
-                                    src="/favicon/favicon.svg"
-                                    alt="Redmoon Logo"
-                                    fill
-                                    className="object-contain drop-shadow-[0_0_8px_rgba(255,42,42,0.3)] group-hover:drop-shadow-[0_0_20px_rgba(255,42,42,0.8)] transition-all duration-300"
-                                />
-                            </div>
-                        </div>
+                        {/* Ambient glow on hover */}
+                        <div className="absolute -inset-4 bg-redmoon-crimson/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-full" />
 
-                        {/* Brand text */}
-                        <div className="flex flex-col items-start">
-                            <h1 className="font-orbitron text-lg md:text-2xl font-bold tracking-[0.1em] md:tracking-[0.15em] text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-redmoon-crimson group-hover:via-redmoon-glow group-hover:to-redmoon-crimson transition-all duration-300 drop-shadow-none group-hover:drop-shadow-[0_0_10px_rgba(255,42,42,0.5)]">
-                                REDMOON
-                            </h1>
-                            <span className="text-[8px] md:text-[10px] font-mono text-orbital-grey tracking-[0.2em] md:tracking-[0.25em] group-hover:text-redmoon-crimson/70 transition-colors duration-300">
-                                DIGITAL HOLDING
-                            </span>
+                        {/* Logo */}
+                        <div className="relative h-10 sm:h-12 md:h-14 lg:h-16 w-auto">
+                            <Image
+                                src="/redmoon-logo.png"
+                                alt="Redmoon"
+                                width={280}
+                                height={64}
+                                className="h-full w-auto object-contain drop-shadow-[0_0_20px_rgba(255,42,42,0.6)] group-hover:drop-shadow-[0_0_40px_rgba(255,42,42,0.9)] transition-all duration-500"
+                                priority
+                            />
                         </div>
                     </motion.button>
 

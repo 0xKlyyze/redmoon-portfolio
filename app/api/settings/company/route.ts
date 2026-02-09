@@ -26,6 +26,11 @@ const DEFAULT_COMPANY_INFO: CompanyInfo = {
         title: "Redmoon | Digital Holding",
         description: "Building the digital future through innovative applications and services.",
         keywords: ["redmoon", "software agency", "portfolio", "digital holding"]
+    },
+    branding: {
+        logo: "/redmoon-logo.png",
+        primaryColor: "#FF2A2A",
+        secondaryColor: "#000000"
     }
 };
 
