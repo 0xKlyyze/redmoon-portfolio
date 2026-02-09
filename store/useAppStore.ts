@@ -15,6 +15,10 @@ interface AppState {
     isCompanyModalOpen: boolean;
     setCompanyModalOpen: (value: boolean) => void;
 
+    // Onboarding State
+    isOnboardingComplete: boolean;
+    setOnboardingComplete: (value: boolean) => void;
+
     // Data Repository
     asteroids: AsteroidData[];
     isLoading: boolean;
@@ -35,6 +39,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     activeAsteroid: null,
     isTransitioning: false,
     isCompanyModalOpen: false,
+    isOnboardingComplete: false,
     asteroids: ASTEROIDS, // Load static data as fallback
     isLoading: false,
     dataSource: 'static',
@@ -47,6 +52,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     setActiveAsteroid: (id) => set({ activeAsteroid: id }),
     setIsTransitioning: (value) => set({ isTransitioning: value }),
     setCompanyModalOpen: (value) => set({ isCompanyModalOpen: value }),
+    setOnboardingComplete: (value) => set({ isOnboardingComplete: value }),
     setAsteroids: (asteroids) => set({ asteroids }),
     triggerPulse: () => set({ lastInteractionTime: Date.now() }),
 
