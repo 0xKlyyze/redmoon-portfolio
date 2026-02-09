@@ -11,6 +11,10 @@ interface AppState {
     isTransitioning: boolean;
     setIsTransitioning: (value: boolean) => void;
 
+    // Hero Overlay State
+    heroVisible: boolean;
+    setHeroVisible: (value: boolean) => void;
+
     // UI Modal State
     isCompanyModalOpen: boolean;
     setCompanyModalOpen: (value: boolean) => void;
@@ -34,6 +38,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Initial State
     activeAsteroid: null,
     isTransitioning: false,
+    heroVisible: true,
     isCompanyModalOpen: false,
     asteroids: ASTEROIDS, // Load static data as fallback
     isLoading: false,
@@ -46,6 +51,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Actions
     setActiveAsteroid: (id) => set({ activeAsteroid: id }),
     setIsTransitioning: (value) => set({ isTransitioning: value }),
+    setHeroVisible: (value) => set({ heroVisible: value }),
     setCompanyModalOpen: (value) => set({ isCompanyModalOpen: value }),
     setAsteroids: (asteroids) => set({ asteroids }),
     triggerPulse: () => set({ lastInteractionTime: Date.now() }),

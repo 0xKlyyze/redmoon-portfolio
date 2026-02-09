@@ -1,13 +1,17 @@
 "use client";
 
 import { useAppStore } from "@/store/useAppStore";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 export default function Navigation() {
     const setActiveAsteroid = useAppStore((state) => state.setActiveAsteroid);
     const setCompanyModalOpen = useAppStore((state) => state.setCompanyModalOpen);
     const triggerPulse = useAppStore((state) => state.triggerPulse);
+    const heroVisible = useAppStore((state) => state.heroVisible);
+
+    // Don't show navigation while hero is visible
+    if (heroVisible) return null;
 
     return (
         <>
