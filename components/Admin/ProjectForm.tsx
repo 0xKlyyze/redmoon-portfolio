@@ -138,7 +138,7 @@ export default function ProjectForm({ project, onClose }: ProjectFormProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <motion.div

@@ -1,7 +1,8 @@
 
-import { NextResponse } from 'next/server';
-import { doc, getDoc } from 'firebase/firestore';
+import { NextRequest, NextResponse } from 'next/server';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
+import { checkAdminAccess } from '@/lib/admin';
 import { CompanyInfo } from '@/types';
 
 // Default company info as fallback
@@ -71,5 +72,60 @@ export async function GET() {
             source: 'static_error',
             error: 'Failed to fetch from Firestore'
         });
+    }
+}
+
+/**
+ * PUT /api/settings/company
+ * Update company information - admin only
+ */
+export async function PUT(request: NextRequest) {
+    try {
+        // Check admin access
+        const pin = request.headers.get('x-admin-pin') || undefined;
+        const { isAdmin, clientIP } = await checkAdminAccess(pin);
+
+        if (!isAdmin) {
+            return NextResponse.json(
+                { error: 'Unauthorized', clientIP },
+                { status: 403 }
+            );
+        }
+
+        if (!isFirebaseConfigured()) {
+            return NextResponse.json(
+                { error: 'Firebase not configured' },
+                { status: 500 }
+            );
+        }
+
+        const body = await request.json();
+
+        // Validate basic requirements
+        if (!body.companyName) {
+            return NextResponse.json(
+                { error: 'Company Name is required' },
+                { status: 400 }
+            );
+        }
+
+        const docRef = doc(db, 'settings', 'company');
+        
+        // Use setDoc to overwrite or create
+        await setDoc(docRef, {
+            ...body,
+            updatedAt: new Date().toISOString()
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: 'Company settings updated successfully'
+        });
+    } catch (error) {
+        console.error('Error updating company info:', error);
+        return NextResponse.json(
+            { error: 'Failed to update company info' },
+            { status: 500 }
+        );
     }
 }

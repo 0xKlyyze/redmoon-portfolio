@@ -12,6 +12,7 @@ export default function AdminPanel() {
     const { isAdmin, clientIP, authMethod } = useAdmin();
     const asteroids = useAppStore((state) => state.asteroids);
     const refreshAsteroids = useAppStore((state) => state.refreshAsteroids);
+    const dataSource = useAppStore((state) => state.dataSource);
 
     const [isOpen, setIsOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<AsteroidData | null>(null);
@@ -48,7 +49,7 @@ export default function AdminPanel() {
             {/* Admin Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed left-4 bottom-20 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-redmoon-crimson to-red-800 text-white shadow-lg hover:scale-110 transition-transform flex items-center justify-center pointer-events-auto"
+                className="fixed left-4 bottom-20 z-[9999] w-12 h-12 rounded-full bg-gradient-to-br from-redmoon-crimson to-red-800 text-white shadow-lg hover:scale-110 transition-transform flex items-center justify-center pointer-events-auto"
                 title="Admin Panel"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,7 +66,7 @@ export default function AdminPanel() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -400 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed left-0 top-0 h-full w-full md:w-[420px] z-40 glass-panel border-r border-white/10 flex flex-col"
+                        className="fixed left-0 top-0 h-full w-full md:w-[420px] z-[100] glass-panel border-r border-white/10 flex flex-col pointer-events-auto shadow-2xl"
                     >
                         {/* Header */}
                         <div className="p-6 border-b border-white/10">
@@ -85,13 +86,33 @@ export default function AdminPanel() {
                                 {authMethod === 'ip' ? `IP: ${clientIP}` : 'PIN authenticated'}
                             </p>
 
+                            {/* Mock Data Warning */}
+                            {dataSource === 'static' && (
+                                <div className="mt-4 p-3 bg-solar-yellow/10 border border-solar-yellow/30 rounded-lg flex items-start gap-3">
+                                    <div className="mt-0.5 text-solar-yellow">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-solar-yellow font-bold uppercase tracking-wider">Mock Data Active</p>
+                                        <p className="text-[10px] text-white/60 mt-1 leading-relaxed">
+                                            Firebase is not configured or returned no results. Showing static fallback projects (Nexus, Vertex, etc.).
+                                            Check your <code className="bg-white/10 px-1 rounded text-white">.env.local</code> file.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Quick Actions */}
                             <button
                                 onClick={() => setIsCompanySettingsOpen(true)}
-                                className="mt-4 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-3 group"
+                                className="mt-6 w-full px-5 py-4 bg-white/[0.03] border border-white/10 rounded-xl hover:bg-white/[0.08] hover:border-tech-blue/50 hover:shadow-[0_0_20px_rgba(42,157,255,0.15)] transition-all duration-300 flex items-center gap-4 group active:scale-[0.98]"
                             >
-                                <div className="w-8 h-8 rounded-full bg-tech-blue/20 flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-tech-blue">
+                                <div className="w-10 h-10 rounded-xl bg-tech-blue/10 flex items-center justify-center group-hover:bg-tech-blue/20 transition-colors shadow-inner">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-tech-blue drop-shadow-[0_0_8px_rgba(42,157,255,0.5)]">
                                         <path d="M3 21h18" />
                                         <path d="M9 8h1" />
                                         <path d="M9 12h1" />
@@ -103,12 +124,14 @@ export default function AdminPanel() {
                                     </svg>
                                 </div>
                                 <div className="text-left flex-1">
-                                    <span className="text-sm text-white font-medium group-hover:text-tech-blue transition-colors">Company Settings</span>
-                                    <p className="text-xs text-orbital-grey">Legal, contact &amp; branding info</p>
+                                    <span className="text-sm text-white font-semibold tracking-wide group-hover:text-tech-blue transition-colors">Company Settings</span>
+                                    <p className="text-[11px] text-orbital-grey/80 mt-0.5 font-medium">Legal, contact &amp; branding info</p>
                                 </div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orbital-grey group-hover:text-white transition-colors">
-                                    <path d="M9 18l6-6-6-6" />
-                                </svg>
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center group-hover:bg-white/10 transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-orbital-grey group-hover:text-white transition-colors">
+                                        <path d="M9 18l6-6-6-6" />
+                                    </svg>
+                                </div>
                             </button>
                         </div>
 
